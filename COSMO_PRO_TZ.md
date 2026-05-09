@@ -19,15 +19,15 @@ A premium digital storefront and booking platform for a luxury clinic, optimized
 - [x] **Image Management:** File upload to Supabase Storage + URL support.
 - [x] **Product Categories:** Advanced filtering (e.g., Face, Body, Treatments).
 - [x] **Search & Sort:** Dynamic product search by name or brand.
-- [ ] **Stock Management:** Tracking quantity in stock.
+- [x] **Stock Management:** Tracking quantity in stock.
 
 ### Phase 3: Booking System (Yozilish) 📅
 - [x] **Multi-step Booking UI:** Flow from service to confirmation.
 - [x] **Calendar Component:** Basic date/time selection.
 - [ ] **Real-time Availability:** Syncing with actual clinic schedule.
-- [ ] **Service Catalog:** Dynamic list of services from the database.
-- [ ] **Booking Records:** Storing appointments in Supabase.
-- [ ] **Admin Notification:** Instant alert when a new booking is made.
+- [x] **Service Catalog:** Dynamic list of services from the database.
+- [x] **Booking Records:** Storing appointments in Supabase.
+- [x] **Admin Notification:** Instant alert when a new booking is made.
 
 ### Phase 4: Cart & Orders 🛒
 - [x] **Persistent Shopping Cart:** Using Zustand for state management.
