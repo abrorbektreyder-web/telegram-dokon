@@ -39,7 +39,7 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   
-  const categories = ['all', 'cleansing', 'moisturizing', 'face', 'body', 'promo']
+  const categories = ['Hammasi', 'Tozalash', 'Namlantirish', 'Yuz', 'Tana', 'Aksiya']
   const { items, addItem, removeItem, updateQuantity, total, clearCart } = useCartStore()
   const { t, language, setLanguage } = useUIStore()
 
