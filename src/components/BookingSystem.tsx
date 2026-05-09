@@ -104,16 +104,14 @@ export default function BookingSystem() {
         client_name: booking.name,
         client_phone: booking.phone,
         client_note: booking.note,
-        user_id: WebApp.initDataUnsafe.user?.id,
-        user_name: WebApp.initDataUnsafe.user?.username || WebApp.initDataUnsafe.user?.first_name,
         status: 'pending'
       }])
 
       if (error) throw error
       setStep(4)
     } catch (e: any) {
-      console.warn('Proceeding in Demo mode')
-      setStep(4)
+      alert('Xatolik: ' + (e.message || 'Ma\'lumotlar saqlanmadi'))
+      console.error(e)
     } finally {
       setSubmitting(false)
     }
