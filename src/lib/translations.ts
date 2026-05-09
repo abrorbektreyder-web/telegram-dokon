@@ -62,7 +62,18 @@ export const translations = {
     pending: 'Kutilmoqda',
     confirmed: 'Tasdiqlandi',
     completed: 'Yakunlandi',
-    cancelled: 'Bekor qilindi'
+    cancelled: 'Bekor qilindi',
+
+    // Admin Services
+    manage_products: 'Mahsulotlar',
+    manage_services: 'Xizmatlar',
+    add_service: 'Yangi xizmat',
+    service_name: 'Xizmat nomi',
+    duration: 'Davomiyligi (masalan: 60 min)',
+    price: 'Narxi',
+    save: 'Saqlash',
+    delete: 'O\'chirish',
+    edit: 'Tahrirlash'
   },
   ru: {
     // Nav
@@ -125,6 +136,17 @@ export const translations = {
     pending: 'Ожидание',
     confirmed: 'Подтверждено',
     completed: 'Завершено',
-    cancelled: 'Отменено'
+    cancelled: 'Отменено',
+
+    // Admin Services
+    manage_products: 'Товары',
+    manage_services: 'Услуги',
+    add_service: 'Новая услуга',
+    service_name: 'Название услуги',
+    duration: 'Длительность (напр: 60 мин)',
+    price: 'Цена',
+    save: 'Сохранить',
+    delete: 'Удалить',
+    edit: 'Изменить'
   }
 };

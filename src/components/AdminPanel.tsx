@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Trash2, Plus, Calendar, ChevronRight, CheckCircle2, Loader2 } from 'lucide-react'
+import { X, Trash2, Plus, Calendar, ChevronRight, CheckCircle2, Loader2, Clock, DollarSign, Edit2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import WebApp from '@twa-dev/sdk'
+import { useUIStore } from '../hooks/useUIStore'
 
 interface AdminPanelProps {
   onClose: () => void
@@ -11,13 +12,16 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ onClose, products = [], onRefresh }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'products' | 'bookings'>('products')
+  const [activeTab, setActiveTab] = useState<'products' | 'services' | 'bookings'>('products')
   const [bookings, setBookings] = useState<any[]>([])
+  const [services, setServices] = useState<any[]>([])
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
   const [showSuccess, setShowSuccess] = useState(false)
-  const [lastAddedProduct, setLastAddedProduct] = useState<any>(null)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showServiceForm, setShowServiceForm] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const { t } = useUIStore()
+
   const [newProduct, setNewProduct] = useState({ 
     name: '', 
     brand: '', 
@@ -27,8 +31,16 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
     stock_quantity: 10 
   })
 
+  const [editingService, setEditingService] = useState<any>(null)
+  const [newService, setNewService] = useState({
+    name: '',
+    duration: '',
+    price: ''
+  })
+
   useEffect(() => {
     fetchBookings()
+    fetchServices()
   }, [])
 
   const fetchBookings = async () => {
@@ -37,6 +49,15 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
       if (!error && data) setBookings(data)
     } catch (e) { 
       console.error('Fetch bookings error:', e) 
+    }
+  }
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase.from('services').select('*').order('name')
+      if (!error && data) setServices(data)
+    } catch (e) {
+      console.error('Fetch services error:', e)
     }
   }
 
@@ -99,7 +120,6 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
 
       if (error) throw error
 
-      setLastAddedProduct(productData)
       setShowAddForm(false)
       setShowSuccess(true)
       setNewProduct({ name: '', brand: '', price: '', image_url: '', description: '', stock_quantity: 10 })
@@ -111,6 +131,48 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
       setTimeout(() => setShowSuccess(false), 3500)
     } catch (e: any) { 
       alert(`Saqlashda xatolik: ${e.message}`)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleAddService = async () => {
+    if (!newService.name || !newService.price) {
+      alert('Nom va narx majburiy!')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const serviceData = {
+        name: newService.name,
+        duration: newService.duration || '60 min',
+        price: parseInt(newService.price.toString())
+      }
+
+      let error;
+      if (editingService) {
+        const { error: updateError } = await supabase.from('services').update(serviceData).eq('id', editingService.id)
+        error = updateError
+      } else {
+        const { error: insertError } = await supabase.from('services').insert([serviceData])
+        error = insertError
+      }
+
+      if (error) throw error
+
+      setShowServiceForm(false)
+      setEditingService(null)
+      setShowSuccess(true)
+      setNewService({ name: '', duration: '', price: '' })
+      fetchServices()
+      
+      try {
+        WebApp.HapticFeedback.notificationOccurred('success')
+      } catch (e) {}
+      setTimeout(() => setShowSuccess(false), 3000)
+    } catch (e: any) {
+      alert(`Xatolik: ${e.message}`)
     } finally {
       setUploading(false)
     }
@@ -132,15 +194,34 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
     } catch (e) { console.error(e) }
   }
 
+  const deleteService = async (id: number) => {
+    if (!confirm('Ushbu xizmatni o\'chirishni xohlaysizmi?')) return
+    try {
+      const { error } = await supabase.from('services').delete().eq('id', id)
+      if (!error) fetchServices()
+    } catch (e) { console.error(e) }
+  }
+
+  const startEditService = (service: any) => {
+    setEditingService(service)
+    setNewService({
+      name: service.name,
+      duration: service.duration,
+      price: service.price.toString()
+    })
+    setShowServiceForm(true)
+  }
+
   const productList = Array.isArray(products) ? products : []
   const bookingList = Array.isArray(bookings) ? bookings : []
+  const serviceList = Array.isArray(services) ? services : []
 
   return (
     <div className="fixed inset-0 z-[100] bg-white overflow-hidden flex flex-col">
       <div className="px-6 pt-12 pb-5 border-b border-slate-50 flex justify-between items-center bg-white/90 backdrop-blur-xl shrink-0 sticky top-0 z-50">
         <button onClick={onClose} className="flex items-center gap-2 px-5 py-3.5 bg-slate-900 text-white rounded-[2rem] active:scale-95 transition-transform shadow-[0_15px_30px_rgba(0,0,0,0.15)]">
            <ChevronRight className="w-5 h-5 rotate-180" />
-           <span className="text-[10px] font-black uppercase tracking-widest">Orqaga</span>
+           <span className="text-[10px] font-black uppercase tracking-widest">{t('back')}</span>
         </button>
         <div className="flex items-center gap-3">
            <h2 className="text-xl font-black text-slate-900 italic tracking-tighter">Admin<span className="text-sky-500">PRO</span></h2>
@@ -149,10 +230,14 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
 
       <div className="flex p-2 bg-slate-50/50 m-6 rounded-[2.5rem] border border-slate-100 shrink-0">
         <button onClick={() => setActiveTab('products')} className={`flex-1 py-4 rounded-[2.1rem] font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'products' ? 'bg-sky-500 text-white shadow-xl shadow-sky-100' : 'text-slate-400'}`}>
-          Mahsulotlar
+          {t('manage_products')}
+        </button>
+        <button onClick={() => setActiveTab('services')} className={`flex-1 py-4 rounded-[2.1rem] font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'services' ? 'bg-sky-500 text-white shadow-xl shadow-sky-100' : 'text-slate-400'}`}>
+          {t('manage_services')}
         </button>
         <button onClick={() => setActiveTab('bookings')} className={`flex-1 py-4 rounded-[2.1rem] font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeTab === 'bookings' ? 'bg-sky-500 text-white shadow-xl shadow-sky-100' : 'text-slate-400'}`}>
-          Bronlar {bookingList.length > 0 && <span className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[8px]">{bookingList.length}</span>}
+          {bookingList.length > 0 && <span className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center text-[7px]">{bookingList.length}</span>}
+          <Calendar className="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -175,6 +260,39 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
                   </button>
                </div>
              ))}
+          </div>
+        ) : activeTab === 'services' ? (
+          <div className="space-y-4">
+            {serviceList.length === 0 ? (
+               <div className="py-20 text-center space-y-4">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
+                     <Clock className="w-8 h-8" />
+                  </div>
+                  <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Xizmatlar yo'q</p>
+               </div>
+            ) : (
+              serviceList.map(s => (
+                <div key={s.id} className="p-5 bg-white rounded-[2rem] border border-slate-50 shadow-sm flex items-center justify-between group">
+                   <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-500">
+                         <Clock className="w-6 h-6" />
+                      </div>
+                      <div className="overflow-hidden">
+                         <p className="font-bold text-slate-800 text-sm truncate">{s.name}</p>
+                         <p className="text-[10px] font-black text-slate-400 mt-0.5 uppercase tracking-tighter">{s.duration} • <span className="text-sky-500">{s.price?.toLocaleString()} so'm</span></p>
+                      </div>
+                   </div>
+                   <div className="flex gap-2">
+                      <button onClick={() => startEditService(s)} className="p-3 bg-sky-50 text-sky-500 rounded-xl hover:bg-sky-500 hover:text-white transition-all">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => deleteService(s.id)} className="p-3 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                   </div>
+                </div>
+              ))
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -214,9 +332,15 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
       </div>
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-md">
-         <button onClick={() => setShowAddForm(true)} className="w-full py-6 bg-sky-500 text-white rounded-[2.5rem] font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-sky-100 flex items-center justify-center gap-3 active:scale-95 transition-transform">
-            <Plus className="w-5 h-5" /> Yangi mahsulot
-         </button>
+         {activeTab === 'products' ? (
+           <button onClick={() => setShowAddForm(true)} className="w-full py-6 bg-sky-500 text-white rounded-[2.5rem] font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-sky-100 flex items-center justify-center gap-3 active:scale-95 transition-transform">
+              <Plus className="w-5 h-5" /> {t('manage_products')}
+           </button>
+         ) : activeTab === 'services' ? (
+           <button onClick={() => { setEditingService(null); setNewService({ name: '', duration: '', price: '' }); setShowServiceForm(true); }} className="w-full py-6 bg-sky-500 text-white rounded-[2.5rem] font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-sky-100 flex items-center justify-center gap-3 active:scale-95 transition-transform">
+              <Plus className="w-5 h-5" /> {t('add_service')}
+           </button>
+         ) : null}
       </div>
 
       <AnimatePresence mode="wait">
@@ -257,7 +381,36 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
                 </div>
                 <button onClick={handleAddProduct} disabled={uploading} className="w-full mt-6 py-6 bg-sky-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-sky-100 flex items-center justify-center gap-2">
                    {uploading ? <Loader2 className="animate-spin w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                   {uploading ? 'Saqlanmoqda...' : 'SAQLASH'}
+                   {uploading ? 'Saqlanmoqda...' : t('save')}
+                </button>
+             </motion.div>
+          </motion.div>
+        )}
+
+        {showServiceForm && (
+          <motion.div key="service" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6">
+             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white w-full max-w-md rounded-[3rem] p-8 shadow-2xl relative overflow-hidden">
+                <div className="flex justify-between items-center mb-6">
+                   <h3 className="font-black text-slate-900 uppercase text-sm tracking-widest">{editingService ? t('edit') : t('add_service')}</h3>
+                   <button onClick={() => { setShowServiceForm(false); setEditingService(null); }} className="p-2 bg-slate-50 rounded-full"><X className="w-4 h-4 text-slate-400" /></button>
+                </div>
+                <div className="space-y-4">
+                   <div className="relative">
+                      <Edit2 className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      <input placeholder={t('service_name')} className="w-full bg-slate-50 p-5 pl-12 rounded-2xl font-bold text-sm outline-none border border-slate-100" value={newService.name} onChange={e => setNewService(prev => ({...prev, name: e.target.value}))} />
+                   </div>
+                   <div className="relative">
+                      <Clock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      <input placeholder={t('duration')} className="w-full bg-slate-50 p-5 pl-12 rounded-2xl font-bold text-sm outline-none border border-slate-100" value={newService.duration} onChange={e => setNewService(prev => ({...prev, duration: e.target.value}))} />
+                   </div>
+                   <div className="relative">
+                      <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      <input type="number" placeholder={t('price')} className="w-full bg-slate-50 p-5 pl-12 rounded-2xl font-bold text-sm outline-none border border-slate-100" value={newService.price} onChange={e => setNewService(prev => ({...prev, price: e.target.value}))} />
+                   </div>
+                </div>
+                <button onClick={handleAddService} disabled={uploading} className="w-full mt-8 py-6 bg-sky-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-sky-100 flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                   {uploading ? <Loader2 className="animate-spin w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                   {uploading ? 'Saqlanmoqda...' : t('save')}
                 </button>
              </motion.div>
           </motion.div>
@@ -268,13 +421,7 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
              <motion.div initial={{ scale: 0.8, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8 }} className="bg-white w-full max-w-sm rounded-[4rem] p-10 flex flex-col items-center text-center shadow-2xl relative">
                 <div className="w-20 h-20 bg-sky-500 rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-sky-200"><CheckCircle2 className="w-10 h-10 text-white" /></div>
                 <h3 className="text-xl font-black text-slate-900 mb-2 uppercase italic tracking-tighter">Muvaffaqiyat!</h3>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-8">Katalog yangilandi</p>
-                {lastAddedProduct && (
-                   <div className="w-full bg-slate-50 p-5 rounded-3xl border border-slate-100 flex items-center gap-4 mb-8 text-left">
-                      <img src={lastAddedProduct?.image_url} className="w-12 h-12 rounded-xl object-cover bg-white" />
-                      <div className="overflow-hidden"><p className="text-[8px] font-black text-sky-500 uppercase truncate">{lastAddedProduct?.brand}</p><p className="font-bold text-slate-800 text-xs truncate">{lastAddedProduct?.name}</p></div>
-                   </div>
-                )}
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-8">Ma'lumotlar yangilandi</p>
                 <button onClick={() => setShowSuccess(false)} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">TUSHUNARLI</button>
              </motion.div>
           </motion.div>
