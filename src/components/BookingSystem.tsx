@@ -104,6 +104,8 @@ export default function BookingSystem() {
         client_name: booking.name,
         client_phone: booking.phone,
         client_note: booking.note,
+        user_id: WebApp.initDataUnsafe.user?.id,
+        user_name: WebApp.initDataUnsafe.user?.username || WebApp.initDataUnsafe.user?.first_name,
         status: 'pending'
       }])
 

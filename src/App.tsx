@@ -38,6 +38,8 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('Hammasi')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [user, setUser] = useState<any>(null)
   
   const categories = ['Hammasi', 'Tozalash', 'Namlantirish', 'Yuz', 'Tana', 'Aksiya']
   const { items, addItem, removeItem, updateQuantity, total } = useCartStore()
@@ -49,8 +51,23 @@ export default function App() {
       WebApp.expand()
       WebApp.headerColor = '#ffffff'
       WebApp.backgroundColor = '#ffffff'
+      if (WebApp.initDataUnsafe.user) {
+        setUser(WebApp.initDataUnsafe.user)
+      }
     } catch (e) {}
   }, [])
+
+  const handleAdminAuth = () => {
+    const pin = prompt('Admin PIN-kodini kiriting:')
+    if (pin === '2026') {
+      setIsAuthorized(true)
+      setShowAdmin(true)
+      haptic('medium')
+    } else {
+      alert('PIN-kod noto\'g\'ri!')
+      haptic('heavy')
+    }
+  }
 
   useEffect(() => {
     filterProducts()
@@ -154,6 +171,35 @@ export default function App() {
           badge: 'Yangi Mavsum',
           icon: Waves
         }
+    }
+  }
+
+  const handleCheckout = async () => {
+    if (items.length === 0) return
+    haptic('heavy')
+    
+    const orderData = {
+      user_id: user?.id,
+      user_name: user?.username || user?.first_name,
+      items: items.map(i => `${i.name} (${i.quantity} dona)`).join(', '),
+      total_price: total(),
+      status: 'new'
+    }
+
+    try {
+      // 1. Supabase-ga saqlash
+      await supabase.from('orders').insert([orderData])
+      
+      // 2. Telegram orqali xabarnoma
+      const msg = `🛍 <b>Yangi Buyurtma!</b>\n\n👤 Mijoz: ${orderData.user_name}\n📦 Mahsulotlar: ${orderData.items}\n💰 Jami: ${orderData.total_price.toLocaleString()} ${getCurrency()}\n\n#buyurtma`
+      
+      // Xabarnoma yuborish (bu funksiya src/lib/telegram.ts da bo'lishi kerak)
+      // Hozircha oddiy alert
+      alert('Buyurtmangiz qabul qilindi! Admin tez orada bog\'lanadi.')
+      clear()
+      setActiveTab('katalog')
+    } catch (e) {
+      alert('Buyurtmada xatolik yuz berdi.')
     }
   }
 
@@ -312,7 +358,7 @@ export default function App() {
                  ))}
                  <div className="mt-12 p-10 bg-slate-900 rounded-[3rem] text-white space-y-6 shadow-2xl">
                     <div className="flex justify-between items-center"><span className="text-xs font-black uppercase tracking-[0.3em] opacity-60">Jami Summa:</span><span className="text-3xl font-black">{total().toLocaleString('fr-FR')} <span className="text-sm text-sky-400 ml-1">{getCurrency()}</span></span></div>
-                    <button onClick={() => { haptic('heavy'); alert('Tez orada...'); }} className="w-full bg-white text-slate-900 py-6 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.3em] active:scale-95 transition-transform">XARIDNI YAKUNLASH</button>
+                    <button onClick={handleCheckout} className="w-full bg-white text-slate-900 py-6 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.3em] active:scale-95 transition-transform">XARIDNI YAKUNLASH</button>
                  </div>
               </div>
             )}
@@ -324,15 +370,26 @@ export default function App() {
           <div className="px-6 pt-6 space-y-6 animate-in fade-in duration-300">
             <div className="bg-slate-900 p-12 rounded-[3rem] flex flex-col items-center text-center text-white relative overflow-hidden">
                <div className="absolute top-0 right-0 w-40 h-40 bg-sky-500/20 blur-3xl" />
-               <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center text-sky-500 mb-5 shadow-2xl"><User className="w-12 h-12" /></div>
-               <h2 className="text-2xl font-black mb-1 text-white">Gost User</h2>
-               <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest opacity-80">Premium Member</p>
+               <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white mb-5 shadow-2xl border border-white/20">
+                  {user?.photo_url ? <img src={user.photo_url} className="w-full h-full rounded-full object-cover" /> : <User className="w-12 h-12" />}
+               </div>
+               <h2 className="text-2xl font-black mb-1 text-white">{user?.first_name || 'Gost User'}</h2>
+               <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest opacity-80">@{user?.username || 'user'}</p>
             </div>
+            
             <div className="grid grid-cols-1 gap-4">
-               {[{ icon: ShieldCheck, title: "Xavfsizlik", desc: "PIN-kod va biometriya" }, { icon: Clock, title: "Tarix", desc: "Barcha xaridlar" }].map((it, i) => (
-                 <button key={i} className="bg-white p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-all shadow-sm hover:border-sky-100"><div className="flex items-center gap-6 text-left"><div className="w-12 h-12 rounded-[1rem] bg-sky-50 flex items-center justify-center text-sky-500"><it.icon className="w-6 h-6" /></div><div><p className="font-black text-sm text-slate-800">{it.title}</p><p className="text-[10px] font-medium text-slate-400">{it.desc}</p></div></div><ChevronRight className="w-5 h-5 text-slate-200" /></button>
-               ))}
-               <button onClick={() => { setShowAdmin(true); haptic('medium'); }} className="mt-6 w-full bg-sky-500 text-white p-6 rounded-[2.5rem] flex justify-between items-center shadow-2xl shadow-sky-100 active:scale-95 transition-transform"><div className="flex items-center gap-6"><Sparkles className="w-7 h-7 text-white" /><span className="font-black text-sm uppercase tracking-widest text-left">Admin Panel</span></div><ArrowRight className="w-6 h-6" /></button>
+               <button onClick={() => { alert('Tarix bo\'limi tez orada...'); haptic(); }} className="bg-white p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-all shadow-sm hover:border-sky-100">
+                  <div className="flex items-center gap-6 text-left">
+                     <div className="w-12 h-12 rounded-[1rem] bg-sky-50 flex items-center justify-center text-sky-500"><Clock className="w-6 h-6" /></div>
+                     <div><p className="font-black text-sm text-slate-800">Xaridlar Tarixi</p><p className="text-[10px] font-medium text-slate-400">Sizning barcha muolajalaringiz</p></div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-200" />
+               </button>
+
+               <button onClick={handleAdminAuth} className="mt-6 w-full bg-slate-50 text-slate-400 p-6 rounded-[2.5rem] flex justify-between items-center border border-slate-100 border-dashed active:scale-95 transition-transform">
+                  <div className="flex items-center gap-6"><Sparkles className="w-7 h-7" /><span className="font-black text-sm uppercase tracking-widest text-left">Admin Panel</span></div>
+                  <ArrowRight className="w-6 h-6" />
+               </button>
             </div>
           </div>
         )}
