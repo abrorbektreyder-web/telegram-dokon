@@ -26,6 +26,7 @@ import { supabase } from './lib/supabase'
 import { useCartStore } from './store'
 import AdminPanel from './components/AdminPanel'
 import BookingSystem from './components/BookingSystem'
+import CustomerHistory from './components/CustomerHistory'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('katalog')
@@ -367,7 +368,7 @@ export default function App() {
 
         {/* PROFIL */}
         {activeTab === 'profil' && (
-          <div className="px-6 pt-6 space-y-6 animate-in fade-in duration-300">
+          <div className="px-6 pt-6 pb-24 space-y-8 animate-in fade-in duration-300">
             <div className="bg-slate-900 p-12 rounded-[3rem] flex flex-col items-center text-center text-white relative overflow-hidden">
                <div className="absolute top-0 right-0 w-40 h-40 bg-sky-500/20 blur-3xl" />
                <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white mb-5 shadow-2xl border border-white/20">
@@ -377,16 +378,10 @@ export default function App() {
                <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest opacity-80">@{user?.username || 'user'}</p>
             </div>
             
-            <div className="grid grid-cols-1 gap-4">
-               <button onClick={() => { alert('Tarix bo\'limi tez orada...'); haptic(); }} className="bg-white p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center active:bg-slate-50 transition-all shadow-sm hover:border-sky-100">
-                  <div className="flex items-center gap-6 text-left">
-                     <div className="w-12 h-12 rounded-[1rem] bg-sky-50 flex items-center justify-center text-sky-500"><Clock className="w-6 h-6" /></div>
-                     <div><p className="font-black text-sm text-slate-800">Xaridlar Tarixi</p><p className="text-[10px] font-medium text-slate-400">Sizning barcha muolajalaringiz</p></div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-200" />
-               </button>
+            <CustomerHistory />
 
-               <button onClick={handleAdminAuth} className="mt-6 w-full bg-slate-50 text-slate-400 p-6 rounded-[2.5rem] flex justify-between items-center border border-slate-100 border-dashed active:scale-95 transition-transform">
+            <div className="grid grid-cols-1 gap-4 pt-4">
+               <button onClick={handleAdminAuth} className="w-full bg-slate-50 text-slate-400 p-6 rounded-[2.5rem] flex justify-between items-center border border-slate-100 border-dashed active:scale-95 transition-transform">
                   <div className="flex items-center gap-6"><Sparkles className="w-7 h-7" /><span className="font-black text-sm uppercase tracking-widest text-left">Admin Panel</span></div>
                   <ArrowRight className="w-6 h-6" />
                </button>
