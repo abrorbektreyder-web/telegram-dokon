@@ -207,32 +207,23 @@ export default function App() {
                     className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-[15s] ease-out" 
                   />
                   
-                  {/* Dynamic Glass Content */}
-                  <div className="absolute inset-0 z-10 p-6 pt-8 flex flex-col justify-start items-start bg-gradient-to-br from-slate-900/70 via-slate-900/10 to-transparent">
+                  {/* Dynamic Glass Content - Pro Integrated Style */}
+                  <div className="absolute inset-0 z-10 p-8 flex flex-col justify-end items-start bg-gradient-to-t from-black/80 via-black/10 to-transparent">
                      <motion.div 
-                       initial={{ x: -20, opacity: 0 }}
-                       animate={{ x: 0, opacity: 1 }}
+                       initial={{ y: 20, opacity: 0 }}
+                       animate={{ y: 0, opacity: 1 }}
                        transition={{ delay: 0.2 }}
-                       className="max-w-[200px] bg-white/10 backdrop-blur-2xl p-5 rounded-[2rem] border border-white/20 shadow-2xl"
+                       className="max-w-[85%]"
                      >
-                        <div className="flex items-center gap-2 mb-2">
-                           <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-                              <hero.icon className="w-3 h-3 text-white" />
+                        <div className="flex items-center gap-3 mb-3">
+                           <div className="w-1 h-10 bg-sky-500 rounded-full shadow-[0_0_15px_rgba(0,163,255,0.5)]" />
+                           <div>
+                              <p className="text-[8px] font-black text-sky-400 uppercase tracking-[0.3em] leading-none mb-1.5 drop-shadow-md">{hero.badge}</p>
+                              <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none drop-shadow-2xl">{hero.title}</h2>
                            </div>
-                           <p className="text-[8px] font-black text-white uppercase tracking-[0.3em] drop-shadow-md">
-                              {hero.badge}
-                           </p>
                         </div>
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tight leading-none mb-1.5 drop-shadow-xl">{hero.title}</h2>
-                        <p className="text-[8px] font-bold text-slate-100 opacity-90 uppercase tracking-widest drop-shadow-md leading-relaxed">{hero.sub}</p>
+                        <p className="text-[9px] font-bold text-slate-200/90 uppercase tracking-[0.2em] pl-4 border-l border-white/20 drop-shadow-md">{hero.sub}</p>
                      </motion.div>
-                  </div>
-
-                  {/* Floating Aesthetic Element */}
-                  <div className="absolute top-10 right-10 z-20">
-                     <div className="bg-white/40 backdrop-blur-2xl p-5 rounded-full shadow-2xl border border-white/40 active:scale-90 transition-transform cursor-pointer">
-                        <hero.icon className="w-7 h-7 text-white animate-pulse" />
-                     </div>
                   </div>
                 </motion.div>
               </AnimatePresence>
