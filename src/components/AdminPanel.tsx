@@ -136,16 +136,14 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
 
   return (
     <div className="fixed inset-0 z-[100] bg-white overflow-hidden flex flex-col">
-      <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-md shrink-0">
-        <div className="flex items-center gap-3">
-           <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white">
-              <Sparkles className="w-5 h-5" />
-           </div>
-           <h2 className="text-xl font-black text-slate-900 italic tracking-tighter">Admin <span className="text-sky-500">PRO</span></h2>
-        </div>
-        <button onClick={onClose} className="p-3 bg-slate-50 rounded-full active:scale-90 transition-transform">
-          <X className="w-6 h-6 text-slate-400" />
+      <div className="px-6 pt-12 pb-5 border-b border-slate-50 flex justify-between items-center bg-white/90 backdrop-blur-xl shrink-0 sticky top-0 z-50">
+        <button onClick={onClose} className="flex items-center gap-2 px-5 py-3.5 bg-slate-900 text-white rounded-[2rem] active:scale-95 transition-transform shadow-[0_15px_30px_rgba(0,0,0,0.15)]">
+           <ChevronRight className="w-5 h-5 rotate-180" />
+           <span className="text-[10px] font-black uppercase tracking-widest">Orqaga</span>
         </button>
+        <div className="flex items-center gap-3">
+           <h2 className="text-xl font-black text-slate-900 italic tracking-tighter">Admin<span className="text-sky-500">PRO</span></h2>
+        </div>
       </div>
 
       <div className="flex p-2 bg-slate-50/50 m-6 rounded-[2.5rem] border border-slate-100 shrink-0">

@@ -208,23 +208,23 @@ export default function App() {
                   />
                   
                   {/* Dynamic Glass Content */}
-                  <div className="absolute inset-0 z-10 p-10 flex flex-col justify-end bg-gradient-to-t from-slate-900/40 via-transparent to-transparent">
+                  <div className="absolute inset-0 z-10 p-6 pt-8 flex flex-col justify-start items-start bg-gradient-to-br from-slate-900/70 via-slate-900/10 to-transparent">
                      <motion.div 
-                       initial={{ y: 20, opacity: 0 }}
-                       animate={{ y: 0, opacity: 1 }}
+                       initial={{ x: -20, opacity: 0 }}
+                       animate={{ x: 0, opacity: 1 }}
                        transition={{ delay: 0.2 }}
-                       className="max-w-[280px] bg-white/20 backdrop-blur-3xl p-7 rounded-[3rem] border border-white/30 shadow-2xl"
+                       className="max-w-[200px] bg-white/10 backdrop-blur-2xl p-5 rounded-[2rem] border border-white/20 shadow-2xl"
                      >
-                        <div className="flex items-center gap-2.5 mb-3">
-                           <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-                              <hero.icon className="w-4 h-4 text-white" />
+                        <div className="flex items-center gap-2 mb-2">
+                           <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+                              <hero.icon className="w-3 h-3 text-white" />
                            </div>
-                           <p className="text-[10px] font-black text-white uppercase tracking-[0.4em] drop-shadow-md">
+                           <p className="text-[8px] font-black text-white uppercase tracking-[0.3em] drop-shadow-md">
                               {hero.badge}
                            </p>
                         </div>
-                        <h2 className="text-3xl font-black text-white uppercase tracking-tight leading-none mb-2 drop-shadow-xl">{hero.title}</h2>
-                        <p className="text-[9px] font-bold text-sky-50 opacity-90 uppercase tracking-widest drop-shadow-md">{hero.sub}</p>
+                        <h2 className="text-2xl font-black text-white uppercase tracking-tight leading-none mb-1.5 drop-shadow-xl">{hero.title}</h2>
+                        <p className="text-[8px] font-bold text-slate-100 opacity-90 uppercase tracking-widest drop-shadow-md leading-relaxed">{hero.sub}</p>
                      </motion.div>
                   </div>
 
