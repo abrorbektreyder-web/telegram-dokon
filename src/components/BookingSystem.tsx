@@ -96,6 +96,8 @@ export default function BookingSystem() {
         return
       }
 
+      const tgUser = WebApp?.initDataUnsafe?.user
+
       const { error } = await supabase.from('bookings').insert([{
         service_id: booking.service.id,
         service_name: booking.service.name,
@@ -104,6 +106,8 @@ export default function BookingSystem() {
         client_name: booking.name,
         client_phone: booking.phone,
         client_note: booking.note,
+        user_id: tgUser?.id || null,
+        user_name: tgUser?.username || tgUser?.first_name || null,
         status: 'pending'
       }])
 

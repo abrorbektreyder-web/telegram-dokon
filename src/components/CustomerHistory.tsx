@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Clock, Calendar, ShoppingBag, ChevronRight, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import WebApp from '@twa-dev/sdk'
 
 export default function CustomerHistory({ user }: { user: any }) {
   const [loading, setLoading] = useState(true)
