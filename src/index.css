@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  --color-primary: #00A3FF;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f1f5f9;
+  --color-muted: #64748b;
+  --color-card: #ffffff;
+}
+
+@layer base {
+  :root {
+    --tg-theme-bg-color: #ffffff;
+    --tg-theme-text-color: #0f172a;
+    --tg-theme-hint-color: #64748b;
+    --tg-theme-link-color: #00A3FF;
+    --tg-theme-button-color: #00A3FF;
+    --tg-theme-button-text-color: #ffffff;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/20;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-black/5 shadow-sm;
+  }
+  
+  .premium-shadow {
+    box-shadow: 0 10px 30px -10px rgba(0, 163, 255, 0.15);
+  }
+
+  .soft-input {
+    @apply bg-secondary/50 border border-black/5 focus:border-primary/30 focus:bg-white transition-all duration-300 outline-none;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 0px;
+  }
+}
