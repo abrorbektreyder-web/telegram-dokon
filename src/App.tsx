@@ -16,12 +16,14 @@ import {
   Droplets,
   Waves,
   Wind,
-  Smile
+  Smile,
+  CheckCircle2
 } from 'lucide-react'
 import WebApp from '@twa-dev/sdk'
 import { supabase } from './lib/supabase'
 import { useCartStore } from './store'
 import { useUIStore } from './hooks/useUIStore'
+import { generateClickUrl } from './lib/click'
 import AdminPanel from './components/AdminPanel'
 import BookingSystem from './components/BookingSystem'
 import CustomerHistory from './components/CustomerHistory'
@@ -37,6 +39,8 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('Hammasi')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<'click' | 'cash'>('click')
+  const [showSuccess, setShowSuccess] = useState(false)
   const [user, setUser] = useState<any>(null)
   
   const categories = ['Hammasi', 'Tozalash', 'Namlantirish', 'Yuz', 'Tana', 'Aksiya']
@@ -181,23 +185,39 @@ export default function App() {
 
   const handleCheckout = async () => {
     if (items.length === 0) return
+    setLoading(true)
     haptic('heavy')
     
     const orderData = {
       user_id: user?.id,
-      user_name: user?.username || user?.first_name,
+      user_name: user?.username || user?.first_name || 'Guest',
       items: items.map(i => `${i.name} (${i.quantity} dona)`).join(', '),
       total_price: total(),
-      status: 'new'
+      status: paymentMethod === 'click' ? 'pending_payment' : 'pending',
+      payment_type: paymentMethod
     }
 
     try {
-      await supabase.from('orders').insert([orderData])
-      alert(t('order_success'))
+      const { data, error } = await supabase.from('orders').insert([orderData]).select().single()
+      
+      if (error) throw error
+
+      if (paymentMethod === 'click' && data) {
+        const clickUrl = generateClickUrl(total(), data.id.toString())
+        try { WebApp.HapticFeedback.notificationOccurred('success') } catch (e) {}
+        window.location.href = clickUrl
+      } else {
+        // Naqd pul uchun maxsus muvaffaqiyat holati
+        setShowSuccess(true)
+        setActiveTab('katalog')
+      }
+      
       clearCart()
-      setActiveTab('katalog')
-    } catch (e) {
-      alert(t('order_error'))
+    } catch (e: any) {
+      console.error('Checkout error:', e)
+      alert(t('order_error') + ': ' + (e.message || 'Server error'))
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -358,9 +378,32 @@ export default function App() {
                       </div>
                    </div>
                  ))}
-                 <div className="mt-12 p-10 bg-slate-900 rounded-[3rem] text-white space-y-6 shadow-2xl">
-                    <div className="flex justify-between items-center"><span className="text-xs font-black uppercase tracking-[0.3em] opacity-60">{t('total_sum')}</span><span className="text-3xl font-black">{total().toLocaleString('fr-FR')} <span className="text-sm text-sky-400 ml-1">{getCurrency()}</span></span></div>
-                    <button onClick={handleCheckout} className="w-full bg-white text-slate-900 py-6 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.3em] active:scale-95 transition-transform">{t('finish_purchase')}</button>
+                 <div className="mt-12 p-8 bg-slate-900 rounded-[3rem] text-white space-y-8 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+                    <div className="flex justify-between items-center relative z-10">
+                       <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">{t('total_sum')}</span>
+                       <span className="text-3xl font-black">{total().toLocaleString('fr-FR')} <span className="text-sm text-sky-400 ml-1">{getCurrency()}</span></span>
+                    </div>
+                    
+                    <div className="space-y-4 relative z-10">
+                       <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mb-2">{t('payment_method')}</p>
+                       <div className="grid grid-cols-2 gap-3">
+                          <button 
+                            onClick={() => { setPaymentMethod('click'); haptic(); }}
+                            className={`py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border ${paymentMethod === 'click' ? 'bg-sky-500 border-sky-400 text-white shadow-lg shadow-sky-900/50' : 'bg-slate-800/50 border-slate-700 text-slate-400 opacity-60'}`}
+                          >
+                             {t('click_payment')}
+                          </button>
+                          <button 
+                            onClick={() => { setPaymentMethod('cash'); haptic(); }}
+                            className={`py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border ${paymentMethod === 'cash' ? 'bg-sky-500 border-sky-400 text-white shadow-lg shadow-sky-900/50' : 'bg-slate-800/50 border-slate-700 text-slate-400 opacity-60'}`}
+                          >
+                             {t('cash')}
+                          </button>
+                       </div>
+                    </div>
+
+                    <button onClick={handleCheckout} className="w-full bg-white text-slate-900 py-6 rounded-[1.8rem] font-black text-xs uppercase tracking-[0.3em] active:scale-95 transition-all shadow-xl shadow-white/5 relative z-10">{t('finish_purchase')}</button>
                  </div>
               </div>
             )}
@@ -475,6 +518,44 @@ export default function App() {
 
       <AnimatePresence>
         {showAdmin && <AdminPanel products={products} onClose={() => setShowAdmin(false)} onRefresh={fetchProducts} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-white/80 backdrop-blur-2xl flex items-center justify-center p-8"
+          >
+             <motion.div 
+               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9 }}
+               className="w-full max-w-sm bg-white rounded-[4rem] p-10 shadow-2xl border border-slate-50 flex flex-col items-center text-center relative overflow-hidden"
+             >
+                <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-500" />
+                
+                <div className="w-24 h-24 bg-sky-50 rounded-[2.5rem] flex items-center justify-center mb-8 relative">
+                   <div className="absolute inset-0 bg-sky-500/20 rounded-[2.5rem] animate-ping" />
+                   <CheckCircle2 className="w-12 h-12 text-sky-500 relative z-10" />
+                </div>
+
+                <h3 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter mb-4 leading-none">
+                  {t('order_success')}
+                </h3>
+                
+                <div className="w-12 h-1 bg-slate-100 rounded-full mb-6" />
+                
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-relaxed mb-10 max-w-[200px]">
+                   Tez orada operator <span className="text-sky-500">aloqaga chiqadi</span>
+                </p>
+
+                <button 
+                  onClick={() => setShowSuccess(false)}
+                  className="w-full py-6 bg-slate-900 text-white rounded-[1.8rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-slate-200 active:scale-95 transition-all"
+                >
+                  Tushunarli
+                </button>
+             </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   )

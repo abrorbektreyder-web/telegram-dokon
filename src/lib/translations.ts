@@ -73,7 +73,12 @@ export const translations = {
     price: 'Narxi',
     save: 'Saqlash',
     delete: 'O\'chirish',
-    edit: 'Tahrirlash'
+    edit: 'Tahrirlash',
+
+    // Payment Methods
+    payment_method: 'To\'lov uslubi',
+    cash: 'Naqd pul',
+    click_payment: 'Click orqali'
   },
   ru: {
     // Nav
@@ -147,6 +152,11 @@ export const translations = {
     price: 'Цена',
     save: 'Сохранить',
     delete: 'Удалить',
-    edit: 'Изменить'
+    edit: 'Изменить',
+
+    // Payment Methods
+    payment_method: 'Способ оплаты',
+    cash: 'Наличными',
+    click_payment: 'Через Click'
   }
 };
