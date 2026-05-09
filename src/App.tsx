@@ -339,18 +339,22 @@ export default function App() {
             ) : (
               <div className="space-y-5">
                  {items.map(item => (
-                   <div key={item.id} className="bg-white p-5 rounded-[2.5rem] border border-slate-100 flex justify-between items-center shadow-sm">
-                      <div className="flex gap-5">
-                         <div className="w-20 h-20 rounded-[1.5rem] overflow-hidden bg-slate-50 shrink-0 border border-slate-50"><img src={item.image_url} className="w-full h-full object-cover" /></div>
-                         <div className="flex flex-col justify-center">
-                            <h4 className="font-bold text-[12px] text-slate-800 line-clamp-1">{item.name}</h4>
-                            <p className="font-black text-[14px] text-sky-500 mt-1">{formatValue(item.price)} {getCurrency()}</p>
-                         </div>
+                   <div key={item.id} className="bg-white p-4 rounded-[2.5rem] border border-slate-100 flex items-center shadow-sm overflow-hidden gap-3">
+                      <div className="w-16 h-16 rounded-[1.2rem] overflow-hidden bg-slate-50 shrink-0 border border-slate-50">
+                         <img src={item.image_url} className="w-full h-full object-cover" />
                       </div>
-                      <div className="flex items-center gap-4 bg-slate-50 p-2.5 rounded-[1.5rem]">
-                         <button onClick={() => { item.quantity > 1 ? updateQuantity(item.id, -1) : removeItem(item.id); haptic(); }} className="w-10 h-10 flex items-center justify-center text-slate-400 bg-white rounded-xl shadow-sm border border-slate-100">{item.quantity === 1 ? <Trash2 className="w-5 h-5 text-red-400" /> : <Minus className="w-5 h-5" />}</button>
-                         <span className="font-black text-sm text-slate-700 w-8 text-center">{item.quantity}</span>
-                         <button onClick={() => { addItem(item); haptic(); }} className="w-10 h-10 flex items-center justify-center text-sky-500 bg-white rounded-xl shadow-sm border border-slate-100"><Plus className="w-5 h-5" /></button>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                         <h4 className="font-bold text-[11px] text-slate-800 truncate">{item.name}</h4>
+                         <p className="font-black text-[12px] text-sky-500 mt-0.5">{formatValue(item.price)} {getCurrency()}</p>
+                      </div>
+                      <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-[1.2rem] shrink-0">
+                         <button onClick={() => { item.quantity > 1 ? updateQuantity(item.id, -1) : removeItem(item.id); haptic(); }} className="w-8 h-8 flex items-center justify-center text-slate-400 bg-white rounded-lg shadow-sm border border-slate-50 active:scale-90 transition-transform">
+                            {item.quantity === 1 ? <Trash2 className="w-4 h-4 text-red-400" /> : <Minus className="w-4 h-4" />}
+                         </button>
+                         <span className="font-black text-[12px] text-slate-700 w-5 text-center">{item.quantity}</span>
+                         <button onClick={() => { addItem(item); haptic(); }} className="w-8 h-8 flex items-center justify-center text-sky-500 bg-white rounded-lg shadow-sm border border-slate-50 active:scale-90 transition-transform">
+                            <Plus className="w-4 h-4" />
+                         </button>
                       </div>
                    </div>
                  ))}
