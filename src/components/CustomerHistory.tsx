@@ -7,7 +7,7 @@ import WebApp from '@twa-dev/sdk'
 export default function CustomerHistory() {
   const [loading, setLoading] = useState(true)
   const [history, setHistory] = useState<any[]>([])
-  const user = WebApp.initDataUnsafe.user
+  const user = WebApp?.initDataUnsafe?.user
 
   useEffect(() => {
     if (user && user.id) {

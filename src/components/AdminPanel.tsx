@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Sparkles, Trash2, Plus, Calendar, ChevronRight, CheckCircle2, Loader2 } from 'lucide-react'
+import { X, Trash2, Plus, Calendar, ChevronRight, CheckCircle2, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import WebApp from '@twa-dev/sdk'
 
 interface AdminPanelProps {
   onClose: () => void
@@ -104,9 +105,9 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
       setNewProduct({ name: '', brand: '', price: '', image_url: '', description: '', stock_quantity: 10 })
       onRefresh()
       
-      if (window.Telegram?.WebApp?.HapticFeedback) {
-        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success')
-      }
+      try {
+        WebApp.HapticFeedback.notificationOccurred('success')
+      } catch (e) {}
       setTimeout(() => setShowSuccess(false), 3500)
     } catch (e: any) { 
       alert(`Saqlashda xatolik: ${e.message}`)

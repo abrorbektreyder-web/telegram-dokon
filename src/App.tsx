@@ -5,15 +5,12 @@ import {
   Calendar, 
   User, 
   Search, 
-  ChevronRight, 
-  Star, 
   Plus, 
   Minus,
   ArrowRight,
   Sparkles,
   ShieldCheck,
   Zap,
-  Clock,
   Trash2,
   X,
   Droplets,
@@ -39,11 +36,10 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('Hammasi')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [isAuthorized, setIsAuthorized] = useState(false)
   const [user, setUser] = useState<any>(null)
   
   const categories = ['Hammasi', 'Tozalash', 'Namlantirish', 'Yuz', 'Tana', 'Aksiya']
-  const { items, addItem, removeItem, updateQuantity, total } = useCartStore()
+  const { items, addItem, removeItem, updateQuantity, total, clearCart } = useCartStore()
 
   useEffect(() => {
     fetchProducts()
@@ -61,7 +57,6 @@ export default function App() {
   const handleAdminAuth = () => {
     const pin = prompt('Admin PIN-kodini kiriting:')
     if (pin === '2026') {
-      setIsAuthorized(true)
       setShowAdmin(true)
       haptic('medium')
     } else {
@@ -77,25 +72,32 @@ export default function App() {
   const fetchProducts = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false })
-      if (!error) {
-        setProducts(data || [])
-        setFilteredProducts(data || [])
-      }
-    } catch (e) { console.error(e) }
-    setLoading(false)
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('name')
+      
+      if (error) throw error
+      setProducts(data || [])
+    } catch (e) {
+      console.error('Error fetching products:', e)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const filterProducts = () => {
-    let result = products
-    if (activeCategory !== 'Hammasi') result = result.filter(p => p.category === activeCategory)
+    let filtered = [...products]
+    if (activeCategory !== 'Hammasi') {
+      filtered = filtered.filter(p => p.category === activeCategory)
+    }
     if (searchQuery) {
-      result = result.filter(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        p.brand.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
-    setFilteredProducts(result)
+    setFilteredProducts(filtered)
   }
 
   const haptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
@@ -188,16 +190,9 @@ export default function App() {
     }
 
     try {
-      // 1. Supabase-ga saqlash
       await supabase.from('orders').insert([orderData])
-      
-      // 2. Telegram orqali xabarnoma
-      const msg = `🛍 <b>Yangi Buyurtma!</b>\n\n👤 Mijoz: ${orderData.user_name}\n📦 Mahsulotlar: ${orderData.items}\n💰 Jami: ${orderData.total_price.toLocaleString()} ${getCurrency()}\n\n#buyurtma`
-      
-      // Xabarnoma yuborish (bu funksiya src/lib/telegram.ts da bo'lishi kerak)
-      // Hozircha oddiy alert
       alert('Buyurtmangiz qabul qilindi! Admin tez orada bog\'lanadi.')
-      clear()
+      clearCart()
       setActiveTab('katalog')
     } catch (e) {
       alert('Buyurtmada xatolik yuz berdi.')
