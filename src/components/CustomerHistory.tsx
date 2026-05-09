@@ -4,10 +4,9 @@ import { Clock, Calendar, ShoppingBag, ChevronRight, Loader2 } from 'lucide-reac
 import { supabase } from '../lib/supabase'
 import WebApp from '@twa-dev/sdk'
 
-export default function CustomerHistory() {
+export default function CustomerHistory({ user }: { user: any }) {
   const [loading, setLoading] = useState(true)
   const [history, setHistory] = useState<any[]>([])
-  const user = WebApp?.initDataUnsafe?.user
 
   useEffect(() => {
     if (user && user.id) {

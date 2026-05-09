@@ -373,7 +373,7 @@ export default function App() {
                <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest opacity-80">@{user?.username || 'user'}</p>
             </div>
             
-            <CustomerHistory />
+            <CustomerHistory user={user} />
 
             <div className="grid grid-cols-1 gap-4 pt-4">
                <button onClick={handleAdminAuth} className="w-full bg-slate-50 text-slate-400 p-6 rounded-[2.5rem] flex justify-between items-center border border-slate-100 border-dashed active:scale-95 transition-transform">
