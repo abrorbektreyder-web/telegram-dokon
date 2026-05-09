@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Sparkles, Trash2, Plus, Calendar, ChevronRight, CheckCircle2, MessageSquare, Phone, User, Clock, Loader2, ArrowRight } from 'lucide-react'
+import { X, Sparkles, Trash2, Plus, Calendar, ChevronRight, CheckCircle2, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 interface AdminPanelProps {

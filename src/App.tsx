@@ -15,14 +15,11 @@ import {
   Zap,
   Clock,
   Trash2,
-  Filter,
   X,
   Droplets,
   Waves,
-  Stethoscope,
   Wind,
-  Smile,
-  ZapOff
+  Smile
 } from 'lucide-react'
 import WebApp from '@twa-dev/sdk'
 import { supabase } from './lib/supabase'

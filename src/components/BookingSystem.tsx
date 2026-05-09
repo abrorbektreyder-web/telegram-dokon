@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar as CalendarIcon, Clock, User, Phone, MessageSquare, ChevronRight, CheckCircle2, Sparkles, Loader2, AlertCircle, X } from 'lucide-react'
+import { Calendar as CalendarIcon, ChevronRight, CheckCircle2, Sparkles, Loader2, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import WebApp from '@twa-dev/sdk'
 
