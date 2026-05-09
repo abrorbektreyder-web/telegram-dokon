@@ -10,27 +10,28 @@ export default function CustomerHistory() {
   const user = WebApp.initDataUnsafe.user
 
   useEffect(() => {
-    if (user?.id) {
+    if (user && user.id) {
       fetchHistory()
     } else {
       setLoading(false)
     }
-  }, [])
+  }, [user])
 
   const fetchHistory = async () => {
+    if (!user?.id) return
     setLoading(true)
     try {
-      // Bron qilishlar tarixini olish
-      const { data: bookings, error: bError } = await supabase
+      const { data, error } = await supabase
         .from('bookings')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (bError) throw bError
-      setHistory(bookings || [])
+      if (error) throw error
+      setHistory(data || [])
     } catch (error) {
-      console.error('History fetch error:', error)
+      console.warn('History fetch error:', error)
+      setHistory([])
     } finally {
       setLoading(false)
     }
