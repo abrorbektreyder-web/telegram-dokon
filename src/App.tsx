@@ -21,6 +21,7 @@ import {
 import WebApp from '@twa-dev/sdk'
 import { supabase } from './lib/supabase'
 import { useCartStore } from './store'
+import { useUIStore } from './hooks/useUIStore'
 import AdminPanel from './components/AdminPanel'
 import BookingSystem from './components/BookingSystem'
 import CustomerHistory from './components/CustomerHistory'
@@ -38,8 +39,9 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   
-  const categories = ['Hammasi', 'Tozalash', 'Namlantirish', 'Yuz', 'Tana', 'Aksiya']
+  const categories = ['all', 'cleansing', 'moisturizing', 'face', 'body', 'promo']
   const { items, addItem, removeItem, updateQuantity, total, clearCart } = useCartStore()
+  const { t, language, setLanguage } = useUIStore()
 
   useEffect(() => {
     fetchProducts()
@@ -191,11 +193,11 @@ export default function App() {
 
     try {
       await supabase.from('orders').insert([orderData])
-      alert('Buyurtmangiz qabul qilindi! Admin tez orada bog\'lanadi.')
+      alert(t('order_success'))
       clearCart()
       setActiveTab('katalog')
     } catch (e) {
-      alert('Buyurtmada xatolik yuz berdi.')
+      alert(t('order_error'))
     }
   }
 
@@ -210,7 +212,7 @@ export default function App() {
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="flex-1 flex items-center gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
-                <input autoFocus type="text" placeholder="Qidirish..." className="w-full bg-slate-50 py-3 pl-12 pr-4 rounded-2xl text-sm font-bold outline-none border border-slate-100" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                <input autoFocus type="text" placeholder={t('search_placeholder')} className="w-full bg-slate-50 py-3 pl-12 pr-4 rounded-2xl text-sm font-bold outline-none border border-slate-100" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               </div>
               <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }} className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500"><X className="w-6 h-6" /></button>
             </motion.div>
@@ -279,7 +281,7 @@ export default function App() {
                       key={cat} onClick={() => { setActiveCategory(cat); haptic(); }} 
                       className={`whitespace-nowrap px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${activeCategory === cat ? 'bg-sky-500 text-white shadow-2xl shadow-sky-100 scale-105' : 'bg-slate-50 text-slate-500 border border-slate-100 hover:bg-sky-50 hover:border-sky-100'}`}
                     >
-                      {cat}
+                      {t(cat as any)}
                     </button>
                   ))}
                </div>
@@ -288,7 +290,7 @@ export default function App() {
             {/* Products Grid */}
             <div className="px-6 space-y-6">
               <div className="flex justify-between items-center px-2">
-                <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">{activeCategory}</h3>
+                <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">{t(activeCategory as any)}</h3>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
@@ -331,9 +333,9 @@ export default function App() {
         {/* TAB 3: SAVAT */}
         {activeTab === 'savat' && (
           <div className="px-6 pt-6 space-y-6 animate-in fade-in duration-300">
-            <h2 className="text-2xl font-black text-slate-900">Mening Savatim</h2>
+            <h2 className="text-2xl font-black text-slate-900">{t('your_cart')}</h2>
             {items.length === 0 ? (
-              <div className="py-40 flex flex-col items-center justify-center opacity-20"><ShoppingBag className="w-16 h-16 mb-4" /><p className="font-bold text-[12px] uppercase tracking-widest">Bo'sh</p></div>
+              <div className="py-40 flex flex-col items-center justify-center opacity-20"><ShoppingBag className="w-16 h-16 mb-4" /><p className="font-bold text-[12px] uppercase tracking-widest">{t('cart_empty')}</p></div>
             ) : (
               <div className="space-y-5">
                  {items.map(item => (
@@ -353,8 +355,8 @@ export default function App() {
                    </div>
                  ))}
                  <div className="mt-12 p-10 bg-slate-900 rounded-[3rem] text-white space-y-6 shadow-2xl">
-                    <div className="flex justify-between items-center"><span className="text-xs font-black uppercase tracking-[0.3em] opacity-60">Jami Summa:</span><span className="text-3xl font-black">{total().toLocaleString('fr-FR')} <span className="text-sm text-sky-400 ml-1">{getCurrency()}</span></span></div>
-                    <button onClick={handleCheckout} className="w-full bg-white text-slate-900 py-6 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.3em] active:scale-95 transition-transform">XARIDNI YAKUNLASH</button>
+                    <div className="flex justify-between items-center"><span className="text-xs font-black uppercase tracking-[0.3em] opacity-60">{t('total_sum')}</span><span className="text-3xl font-black">{total().toLocaleString('fr-FR')} <span className="text-sm text-sky-400 ml-1">{getCurrency()}</span></span></div>
+                    <button onClick={handleCheckout} className="w-full bg-white text-slate-900 py-6 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.3em] active:scale-95 transition-transform">{t('finish_purchase')}</button>
                  </div>
               </div>
             )}
@@ -369,15 +371,33 @@ export default function App() {
                <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white mb-5 shadow-2xl border border-white/20">
                   {user?.photo_url ? <img src={user.photo_url} className="w-full h-full rounded-full object-cover" /> : <User className="w-12 h-12" />}
                </div>
-               <h2 className="text-2xl font-black mb-1 text-white">{user?.first_name || 'Gost User'}</h2>
+               <h2 className="text-2xl font-black mb-1 text-white">{user?.first_name || t('guest_user')}</h2>
                <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest opacity-80">@{user?.username || 'user'}</p>
             </div>
+
+            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 space-y-6">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2">{t('language')}</h3>
+                <div className="grid grid-cols-2 gap-4">
+                   <button 
+                     onClick={() => { setLanguage('uz'); haptic(); }}
+                     className={`py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${language === 'uz' ? 'bg-sky-500 text-white shadow-xl shadow-sky-100' : 'bg-slate-50 text-slate-400 border border-slate-100'}`}
+                   >
+                     🇺🇿 O'zbekcha
+                   </button>
+                   <button 
+                     onClick={() => { setLanguage('ru'); haptic(); }}
+                     className={`py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${language === 'ru' ? 'bg-sky-500 text-white shadow-xl shadow-sky-100' : 'bg-slate-50 text-slate-400 border border-slate-100'}`}
+                   >
+                     🇷🇺 Русский
+                   </button>
+                </div>
+             </div>
             
             <CustomerHistory user={user} />
 
             <div className="grid grid-cols-1 gap-4 pt-4">
                <button onClick={handleAdminAuth} className="w-full bg-slate-50 text-slate-400 p-6 rounded-[2.5rem] flex justify-between items-center border border-slate-100 border-dashed active:scale-95 transition-transform">
-                  <div className="flex items-center gap-6"><Sparkles className="w-7 h-7" /><span className="font-black text-sm uppercase tracking-widest text-left">Admin Panel</span></div>
+                  <div className="flex items-center gap-6"><Sparkles className="w-7 h-7" /><span className="font-black text-sm uppercase tracking-widest text-left">{t('admin_panel')}</span></div>
                   <ArrowRight className="w-6 h-6" />
                </button>
             </div>
@@ -389,10 +409,10 @@ export default function App() {
       <nav className="fixed bottom-0 inset-x-0 z-[50] bg-white/95 backdrop-blur-3xl border-t border-slate-100 shadow-[0_-20px_50px_rgba(0,0,0,0.05)] pb-safe">
         <div className="max-w-md mx-auto px-8 h-22 flex justify-between items-center">
           {[
-            { id: 'katalog', icon: ShoppingBag, label: 'SHOP' },
-            { id: 'yozilish', icon: Calendar, label: 'BOOK' },
-            { id: 'savat', icon: ShoppingBag, label: 'CART', count: items.length },
-            { id: 'profil', icon: User, label: 'ME' }
+            { id: 'katalog', icon: ShoppingBag, label: t('shop') },
+            { id: 'yozilish', icon: Calendar, label: t('book') },
+            { id: 'savat', icon: ShoppingBag, label: t('cart'), count: items.length },
+            { id: 'profil', icon: User, label: t('me') }
           ].map(tab => (
             <button 
               key={tab.id} onClick={() => { setActiveTab(tab.id); haptic(); }}
@@ -430,8 +450,8 @@ export default function App() {
                     <div className="flex justify-between items-start">
                        <div><p className="text-[10px] font-black text-sky-500 uppercase tracking-[0.5em] mb-2">{selectedProduct.brand}</p><h2 className="text-3xl font-black text-slate-900 leading-tight">{selectedProduct.name}</h2></div>
                        <div className="bg-slate-900 text-white px-6 py-3 rounded-[1.5rem] text-xl font-black shadow-2xl">{formatValue(selectedProduct.price)} <span className="text-xs text-sky-400 ml-1">{getCurrency()}</span></div>
-                    </div>
-                    <div className="p-6 bg-sky-50/50 rounded-[2rem] border border-sky-100/30"><p className="text-[9px] font-black text-sky-400 uppercase tracking-widest mb-2.5 flex items-center gap-2.5"><ShieldCheck className="w-5 h-5" /> Mutaxassis Tavsiyasi</p><p className="text-[13px] font-medium text-slate-600 leading-relaxed italic">{selectedProduct.expert_tip || "Chuqur namlantirish va terini professional parvarish qilish uchun eng yaxshi tanlov."}</p></div>
+                     </div>
+                              <div className="p-6 bg-sky-50/50 rounded-[2rem] border border-sky-100/30"><p className="text-[9px] font-black text-sky-400 uppercase tracking-widest mb-2.5 flex items-center gap-2.5"><ShieldCheck className="w-5 h-5" /> {language === 'uz' ? 'Mutaxassis Tavsiyasi' : 'Совет эксперта'}</p><p className="text-[13px] font-medium text-slate-600 leading-relaxed italic">{selectedProduct.expert_tip || (language === 'uz' ? "Chuqur namlantirish va terini professional parvarish qilish uchun eng yaxshi tanlov." : "Лучший выбор для глубокого увлажнения и профессионального ухода за кожей.")}</p></div>
                     <button 
                       onClick={() => { 
                         addItem(selectedProduct); 
@@ -440,7 +460,7 @@ export default function App() {
                       }} 
                       className="w-full py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.4em] shadow-[0_25px_50px_rgba(0,0,0,0.2)] active:scale-95 transition-transform bg-slate-900 text-white"
                     >
-                      SAVATGA QO'SHISH
+                      {t('add_to_cart')}
                     </button>
                   </div>
                </div>

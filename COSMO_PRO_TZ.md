@@ -33,20 +33,21 @@ A premium digital storefront and booking platform for a luxury clinic, optimized
 - [x] **Persistent Shopping Cart:** Using Zustand for state management.
 - [x] **Quantity Controls:** Add/Subtract/Remove logic.
 - [x] **Price Calculation:** Dynamic total sum with currency awareness.
-- [ ] **Order Submission:** Sending order details to a Telegram Bot/Group.
-- [ ] **Customer Profile:** Viewing previous orders and active bookings.
+- [x] **Order Submission:** Sending order details to a Telegram Bot/Group.
+- [x] **Customer Profile:** Viewing previous orders and active bookings.
 - [ ] **Promo Codes:** Discount application system.
 
 ### Phase 5: Payments & Security 💳
 - [x] **Adaptive Responsive Design:** Pro-level UI for both Mobile and Tablet (iPad).
 - [ ] **Payment Integration:** Telegram Stars, Click, or Payme support.
-- [ ] **Admin Authentication:** Password/PIN protection for the Admin Panel.
-- [ ] **User Auth:** Verifying users via Telegram WebApp InitData.
-- [ ] **Security Audit:** Protecting Supabase API keys and data access.
+- [x] **Admin Authentication:** Password/PIN protection for the Admin Panel.
+- [x] **User Auth:** Verifying users via Telegram WebApp InitData.
+- [x] **Security Audit:** Protecting Supabase API keys and data access (Schema updated).
 
 ## 3. Current Focus (Current Sprint)
-- Implementing **Order Submission** to send cart details to the clinic's manager.
-- Adding **Admin PIN** protection to the profile/admin dashboard.
+- **Payment Integration:** Connecting Click/Payme or Telegram Stars for real-time transactions.
+- **Admin UI Polish:** Improving the bulk-edit features for product stock.
+- **Final Security Audit:** Ensuring all RLS policies are strictly enforced.
 
 ---
 *Status as of 2026-05-09. All [ ] items are pending development.*
