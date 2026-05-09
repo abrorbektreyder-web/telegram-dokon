@@ -10,12 +10,13 @@ A premium digital storefront and booking platform for a luxury clinic, optimized
 - [x] **Ultra-Compact Mobile UI:** Optimized for Telegram's unique viewport.
 - [x] **3-Column Product Grid:** Maximized screen real estate.
 - [x] **Haptic Feedback Integration:** Improved tactile UX.
-- [ ] **Multi-language Support:** Uzbek, Russian, and English toggle.
+- [x] **Multi-language Support:** Uzbek, Russian integration (Zustand based).
 
 ### Phase 2: Product Catalog & Management 📦
 - [x] **Supabase Integration:** Real-time database for products.
 - [x] **Universal Currency Handling:** Support for any currency format.
 - [x] **Admin CRUD:** Basic Add/Delete functionality for products.
+- [x] **Admin Services Management:** Complete Add/Edit/Delete for clinic services.
 - [x] **Image Management:** File upload to Supabase Storage + URL support.
 - [x] **Product Categories:** Advanced filtering (e.g., Face, Body, Treatments).
 - [x] **Search & Sort:** Dynamic product search by name or brand.
@@ -31,7 +32,7 @@ A premium digital storefront and booking platform for a luxury clinic, optimized
 
 ### Phase 4: Cart & Orders 🛒
 - [x] **Persistent Shopping Cart:** Using Zustand for state management.
-- [x] **Quantity Controls:** Add/Subtract/Remove logic.
+- [x] **Quantity Controls:** Add/Subtract/Remove logic + Mobile Layout Fix.
 - [x] **Price Calculation:** Dynamic total sum with currency awareness.
 - [x] **Order Submission:** Sending order details to a Telegram Bot/Group.
 - [x] **Customer Profile:** Viewing previous orders and active bookings.
@@ -50,4 +51,4 @@ A premium digital storefront and booking platform for a luxury clinic, optimized
 - **Final Security Audit:** Ensuring all RLS policies are strictly enforced.
 
 ---
-*Status as of 2026-05-09. All [ ] items are pending development.*
+*Status as of 2026-05-09 (Updated). All [ ] items are pending development.*
