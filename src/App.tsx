@@ -160,7 +160,7 @@ export default function App() {
   const hero = getHeroData()
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 pb-36 overflow-x-hidden selection:bg-sky-100 font-sans">
+    <div className="min-h-screen bg-white text-slate-900 pb-48 overflow-x-hidden selection:bg-sky-100 font-sans">
       {/* Header - Doktor Guzal Branding */}
       <header className="px-6 py-5 flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-3xl z-[45] border-b border-slate-50 transition-all duration-300">
         <AnimatePresence mode="wait">
@@ -347,9 +347,9 @@ export default function App() {
         )}
       </main>
 
-      {/* Navigation - Ultra Luxe Pill */}
-      <nav className="fixed bottom-10 inset-x-8 z-[50] flex justify-center">
-        <div className="bg-white/80 backdrop-blur-3xl border border-slate-100 p-2.5 rounded-[2.5rem] flex gap-3 shadow-[0_30px_70px_rgba(0,163,255,0.22)]">
+      {/* Navigation - Pro Luxe Bottom Bar */}
+      <nav className="fixed bottom-0 inset-x-0 z-[50] bg-white/95 backdrop-blur-3xl border-t border-slate-100 shadow-[0_-20px_50px_rgba(0,0,0,0.05)] pb-safe">
+        <div className="max-w-md mx-auto px-8 h-22 flex justify-between items-center">
           {[
             { id: 'katalog', icon: ShoppingBag, label: 'SHOP' },
             { id: 'yozilish', icon: Calendar, label: 'BOOK' },
@@ -358,16 +358,21 @@ export default function App() {
           ].map(tab => (
             <button 
               key={tab.id} onClick={() => { setActiveTab(tab.id); haptic(); }}
-              className={`relative h-14 px-6 rounded-[1.75rem] flex items-center gap-3 transition-all duration-300 ${activeTab === tab.id ? 'bg-sky-500 text-white shadow-2xl shadow-sky-200 min-w-[130px]' : 'bg-slate-100/50 text-slate-500 min-w-[64px] justify-center hover:bg-sky-50 hover:text-sky-500 border border-transparent hover:border-sky-100'}`}
+              className={`relative flex flex-col items-center justify-center gap-1.5 transition-all duration-300 w-16 group active:scale-90`}
             >
-              <tab.icon className={`${activeTab === tab.id ? 'w-5 h-5' : 'w-6 h-6'} transition-all`} />
+              <div className={`w-12 h-12 rounded-[1.2rem] flex items-center justify-center transition-all duration-500 ${activeTab === tab.id ? 'bg-sky-500 text-white shadow-xl shadow-sky-200' : 'bg-slate-50 text-slate-400 group-hover:bg-sky-50 group-hover:text-sky-500'}`}>
+                <tab.icon className="w-5.5 h-5.5" />
+                {tab.count && tab.count > 0 && (
+                  <span className={`absolute -top-1 -right-1 w-5 h-5 rounded-full text-[8px] flex items-center justify-center font-black border-2 border-white shadow-lg ${activeTab === tab.id ? 'bg-rose-500 text-white' : 'bg-sky-500 text-white'}`}>
+                    {tab.count}
+                  </span>
+                )}
+              </div>
+              <span className={`text-[8px] font-black uppercase tracking-[0.2em] transition-colors ${activeTab === tab.id ? 'text-sky-500' : 'text-slate-300 group-hover:text-sky-400'}`}>
+                {tab.label}
+              </span>
               {activeTab === tab.id && (
-                <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-[10px] font-black uppercase tracking-[0.2em]">{tab.label}</motion.span>
-              )}
-              {tab.count && tab.count > 0 && (
-                <span className={`absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full text-[9px] flex items-center justify-center font-black border-2 border-white shadow-xl ${activeTab === tab.id ? 'bg-white text-sky-500' : 'bg-sky-500 text-white'}`}>
-                  {tab.count}
-                </span>
+                <motion.div layoutId="nav-dot" className="absolute -bottom-1 w-1 h-1 bg-sky-500 rounded-full" />
               )}
             </button>
           ))}
