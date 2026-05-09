@@ -1,239 +1,284 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, Trash2, Edit, Save, Upload, Loader2, Sparkles } from 'lucide-react'
+import { X, Sparkles, Trash2, Plus, Calendar, ChevronRight, CheckCircle2, MessageSquare, Phone, User, Clock, Loader2, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
-export default function AdminPanel({ products = [], onClose, onRefresh }: any) {
+interface AdminPanelProps {
+  onClose: () => void
+  products: any[]
+  onRefresh: () => void
+}
+
+export default function AdminPanel({ onClose, products = [], onRefresh }: AdminPanelProps) {
+  const [activeTab, setActiveTab] = useState<'products' | 'bookings'>('products')
+  const [bookings, setBookings] = useState<any[]>([])
+  const [selectedBooking, setSelectedBooking] = useState<any>(null)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [lastAddedProduct, setLastAddedProduct] = useState<any>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [useUrl, setUseUrl] = useState(false)
-  
-  const [activeAdminTab, setActiveAdminTab] = useState<'products' | 'bookings'>('products')
-  const [bookings, setBookings] = useState<any[]>([])
-  const [bookingsLoading, setBookingsLoading] = useState(false)
-
-  const [newProduct, setNewProduct] = useState({
-    name: '', brand: '', price: '', category: 'Tozalash', description: '', expert_tip: '', image_url: '', is_top: false, stock_quantity: 10
+  const [newProduct, setNewProduct] = useState({ 
+    name: '', 
+    brand: '', 
+    price: '', 
+    image_url: '', 
+    description: '',
+    stock_quantity: 10 
   })
 
   useEffect(() => {
-    if (activeAdminTab === 'bookings') {
-      fetchBookings()
-    }
-  }, [activeAdminTab])
+    fetchBookings()
+  }, [])
 
   const fetchBookings = async () => {
-    setBookingsLoading(true)
     try {
       const { data, error } = await supabase.from('bookings').select('*').order('created_at', { ascending: false })
-      if (error) {
-        console.error('Supabase error fetching bookings:', error.message, error.details, error.hint)
-        setBookings([])
-      } else {
-        setBookings(data || [])
-      }
-    } catch (e: any) { 
-      console.error('Network or Runtime error in fetchBookings:', e.message)
-      setBookings([])
+      if (!error && data) setBookings(data)
+    } catch (e) { 
+      console.error('Fetch bookings error:', e) 
     }
-    setBookingsLoading(false)
   }
 
-  const deleteBooking = async (id: string) => {
-    if (!confirm('Ushbu bronni o\'chirmoqchimisiz?')) return
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Rasm hajmi juda katta (maksimum 2MB)')
+        return
+      }
+
+      setUploading(true)
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+      const filePath = `products/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file)
+
+      if (uploadError) throw new Error(uploadError.message)
+
+      const { data: urlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath)
+
+      if (urlData?.publicUrl) {
+        setNewProduct(prev => ({ ...prev, image_url: urlData.publicUrl }))
+      }
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      alert(`Xatolik: ${error.message}`)
+    } finally {
+      setUploading(false)
+      if (e.target) e.target.value = ''
+    }
+  }
+
+  const handleAddProduct = async () => {
+    if (!newProduct.name || !newProduct.price) {
+      alert('Nom va narx majburiy!')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const productData = {
+        name: newProduct.name,
+        brand: newProduct.brand || 'Doktor Guzal',
+        description: newProduct.description,
+        price: parseInt(newProduct.price.toString()),
+        image_url: newProduct.image_url || 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400',
+        stock_quantity: newProduct.stock_quantity || 10,
+        category: 'Boshqa'
+      }
+
+      const { error } = await supabase.from('products').insert([productData])
+
+      if (error) throw error
+
+      setLastAddedProduct(productData)
+      setShowAddForm(false)
+      setShowSuccess(true)
+      setNewProduct({ name: '', brand: '', price: '', image_url: '', description: '', stock_quantity: 10 })
+      onRefresh()
+      
+      if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success')
+      }
+      setTimeout(() => setShowSuccess(false), 3500)
+    } catch (e: any) { 
+      alert(`Saqlashda xatolik: ${e.message}`)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const deleteBooking = async (id: number) => {
+    if (!confirm('O\'chirilsinmi?')) return
     try {
       const { error } = await supabase.from('bookings').delete().eq('id', id)
       if (!error) fetchBookings()
     } catch (e) { console.error(e) }
   }
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const deleteProduct = async (id: number) => {
+    if (!confirm('O\'chirilsinmi?')) return
     try {
-      setUploading(true)
-      const file = event.target.files?.[0]
-      if (!file) return
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}`
-      const { error: uploadError } = await supabase.storage.from('produckt-images').upload(fileName, file)
-      if (uploadError) throw uploadError
-      const { data: { publicUrl } } = supabase.storage.from('produckt-images').getPublicUrl(fileName)
-      setNewProduct(prev => ({ ...prev, image_url: publicUrl }))
-      setPreviewUrl(publicUrl)
-    } catch (error: any) {
-      alert('Rasm yuklashda xatolik: ' + error.message)
-    } finally {
-      setUploading(false)
-    }
+      const { error } = await supabase.from('products').delete().eq('id', id)
+      if (!error) onRefresh()
+    } catch (e) { console.error(e) }
   }
 
-  const handleAddProduct = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const finalImageUrl = useUrl ? newProduct.image_url : previewUrl;
-    if (!finalImageUrl) return alert('Iltimos, rasm yuklang!');
-    setLoading(true)
-    try {
-      const { error } = await supabase.from('products').insert([{ ...newProduct, image_url: finalImageUrl }])
-      if (error) alert('Xatolik: ' + error.message)
-      else {
-        onRefresh(); setShowAddForm(false); setPreviewUrl(null);
-        setNewProduct({ name: '', brand: '', price: '', category: 'Tozalash', description: '', expert_tip: '', image_url: '', is_top: false, stock_quantity: 10 })
-      }
-    } finally { setLoading(false) }
-  }
+  const productList = Array.isArray(products) ? products : []
+  const bookingList = Array.isArray(bookings) ? bookings : []
 
   return (
-    <div className="fixed inset-0 z-[70] bg-slate-50 overflow-hidden flex flex-col">
-      {/* Header - Compact */}
-      <div className="p-4 pt-6 flex justify-between items-center bg-white border-b border-slate-100 shrink-0">
-        <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-          Admin <Sparkles className="w-4 h-4 text-sky-500" />
-        </h2>
-        <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
-          <X className="w-4 h-4" />
+    <div className="fixed inset-0 z-[100] bg-white overflow-hidden flex flex-col">
+      <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-3">
+           <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white">
+              <Sparkles className="w-5 h-5" />
+           </div>
+           <h2 className="text-xl font-black text-slate-900 italic tracking-tighter">Admin <span className="text-sky-500">PRO</span></h2>
+        </div>
+        <button onClick={onClose} className="p-3 bg-slate-50 rounded-full active:scale-90 transition-transform">
+          <X className="w-6 h-6 text-slate-400" />
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="px-4 py-2 bg-white border-b border-slate-50 flex gap-2 shrink-0">
-        <button 
-          onClick={() => setActiveAdminTab('products')}
-          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAdminTab === 'products' ? 'bg-sky-500 text-white shadow-lg shadow-sky-50' : 'bg-slate-50 text-slate-400'}`}
-        >
+      <div className="flex p-2 bg-slate-50/50 m-6 rounded-[2.5rem] border border-slate-100 shrink-0">
+        <button onClick={() => setActiveTab('products')} className={`flex-1 py-4 rounded-[2.1rem] font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'products' ? 'bg-sky-500 text-white shadow-xl shadow-sky-100' : 'text-slate-400'}`}>
           Mahsulotlar
         </button>
-        <button 
-          onClick={() => setActiveAdminTab('bookings')}
-          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAdminTab === 'bookings' ? 'bg-sky-500 text-white shadow-lg shadow-sky-50' : 'bg-slate-50 text-slate-400'}`}
-        >
-          Bronlar {(bookings && bookings.length > 0) ? <span className="ml-1 bg-white text-sky-500 px-1.5 rounded-md">{bookings.length}</span> : ''}
+        <button onClick={() => setActiveTab('bookings')} className={`flex-1 py-4 rounded-[2.1rem] font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeTab === 'bookings' ? 'bg-sky-500 text-white shadow-xl shadow-sky-100' : 'text-slate-400'}`}>
+          Bronlar {bookingList.length > 0 && <span className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[8px]">{bookingList.length}</span>}
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 pb-32 space-y-4">
-        {activeAdminTab === 'products' ? (
-          <>
-            <button 
-              onClick={() => setShowAddForm(true)}
-              className="w-full bg-sky-500 text-white p-4 rounded-2xl flex items-center justify-center gap-2 font-black text-[10px] shadow-lg shadow-sky-50 uppercase tracking-widest"
-            >
-              <Plus className="w-4 h-4" /> QO'SHISH
-            </button>
-
-            <div className="space-y-2">
-               {(products || []).map((p: any) => (
-                 <div key={p.id} className="bg-white p-3 rounded-2xl border border-slate-50 flex items-center justify-between shadow-sm">
-                   <div className="flex items-center gap-3">
-                     <img src={p.image_url} className="w-10 h-10 rounded-xl object-cover bg-slate-50" />
-                      <div>
-                        <h4 className="font-bold text-[10px] text-slate-700 line-clamp-1">{p.name}</h4>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-[9px] font-black text-sky-500">{p.price} ₸</p>
-                          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md ${p.stock_quantity > 0 ? 'bg-emerald-50 text-emerald-500' : 'bg-red-50 text-red-500'}`}>
-                            {p.stock_quantity || 0} dona
-                          </span>
-                        </div>
-                      </div>
-                   </div>
-                   <button onClick={() => { if(confirm('O\'chirilsinmi?')) supabase.from('products').delete().eq('id', p.id).then(() => onRefresh()) }} className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center active:scale-90">
-                     <Trash2 className="w-3.5 h-3.5" />
-                   </button>
-                 </div>
-               ))}
-            </div>
-          </>
-        ) : (
-          <div className="space-y-3">
-             {bookingsLoading ? [1,2,3].map(i => <div key={i} className="h-24 bg-slate-50 rounded-2xl animate-pulse" />) : 
-              (!bookings || bookings.length === 0) ? <div className="py-20 text-center opacity-20 text-[10px] font-black uppercase tracking-widest">Bronlar yo'q</div> :
-              bookings.map((b: any) => (
-                <div key={b.id} className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
-                   <div className="flex justify-between items-start">
-                      <div>
-                         <p className="text-[8px] font-black text-sky-500 uppercase tracking-widest mb-1">{b.service_name}</p>
-                         <h4 className="font-black text-slate-800 text-xs">{b.client_name}</h4>
-                      </div>
-                      <button onClick={() => deleteBooking(b.id)} className="w-8 h-8 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center active:bg-red-50 active:text-red-500 transition-colors">
-                         <Trash2 className="w-4 h-4" />
-                      </button>
-                   </div>
-                   <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                         <p className="text-[7px] font-black text-slate-300 uppercase mb-0.5">Sana/Vaqt</p>
-                         <p className="text-[9px] font-bold text-slate-600">{b.booking_date} • {b.booking_time}</p>
-                      </div>
-                      <div className="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                         <p className="text-[7px] font-black text-slate-300 uppercase mb-0.5">Telefon</p>
-                         <p className="text-[9px] font-bold text-slate-600">{b.client_phone}</p>
-                      </div>
-                   </div>
-                   {b.client_note && (
-                     <div className="bg-sky-50/30 p-3 rounded-xl border border-sky-100/20">
-                        <p className="text-[8px] font-medium text-slate-500 italic">"{b.client_note}"</p>
+      <div className="flex-1 overflow-y-auto px-6 pb-24">
+        {activeTab === 'products' ? (
+          <div className="space-y-4">
+             {productList.map(p => (
+               <div key={p.id} className="p-5 bg-white rounded-[2rem] border border-slate-50 shadow-sm flex items-center justify-between group">
+                  <div className="flex items-center gap-4">
+                     <div className="w-14 h-14 bg-slate-50 rounded-2xl overflow-hidden shadow-inner">
+                        <img src={p.image_url || 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=200'} className="w-full h-full object-cover" />
                      </div>
-                   )}
-                </div>
-              ))
-             }
+                     <div className="overflow-hidden">
+                        <p className="font-bold text-slate-800 text-sm truncate">{p.name}</p>
+                        <p className="text-[10px] font-black text-sky-500 mt-0.5">{p.price?.toLocaleString()} so'm</p>
+                     </div>
+                  </div>
+                  <button onClick={() => deleteProduct(p.id)} className="p-3 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+               </div>
+             ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+             {bookingList.length === 0 ? (
+               <div className="py-20 text-center space-y-4">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
+                     <Calendar className="w-8 h-8" />
+                  </div>
+                  <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Bronlar yo'q</p>
+               </div>
+             ) : bookingList.map(b => (
+               <div key={b.id} className="p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm group">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1 overflow-hidden">
+                      <span className="text-[9px] font-black text-sky-500 uppercase tracking-widest bg-sky-50 px-3 py-1 rounded-full mb-2 inline-block truncate max-w-full">{b.service_name}</span>
+                      <h4 className="font-black text-slate-900 text-lg leading-tight truncate">{b.client_name}</h4>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                       <button onClick={() => setSelectedBooking(b)} className="p-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-sky-50 hover:text-sky-500 transition-all"><ChevronRight className="w-4 h-4" /></button>
+                       <button onClick={() => deleteBooking(b.id)} className="p-3 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                     <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 overflow-hidden">
+                        <p className="text-[8px] font-black text-slate-300 uppercase mb-1">Vaqt</p>
+                        <p className="font-bold text-slate-700 text-[10px] truncate">{b.booking_date} • {b.booking_time}</p>
+                     </div>
+                     <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 overflow-hidden">
+                        <p className="text-[8px] font-black text-slate-300 uppercase mb-1">Tel</p>
+                        <p className="font-bold text-slate-700 text-[10px] truncate">{b.client_phone}</p>
+                     </div>
+                  </div>
+               </div>
+             ))}
           </div>
         )}
       </div>
 
-      {/* FORM - IXCHAM VA TEPADA */}
-      <AnimatePresence>
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-md">
+         <button onClick={() => setShowAddForm(true)} className="w-full py-6 bg-sky-500 text-white rounded-[2.5rem] font-black text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-sky-100 flex items-center justify-center gap-3 active:scale-95 transition-transform">
+            <Plus className="w-5 h-5" /> Yangi mahsulot
+         </button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {selectedBooking && (
+          <motion.div key="details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6">
+             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white w-full max-w-md rounded-[3rem] p-8 shadow-2xl relative">
+                <button onClick={() => setSelectedBooking(null)} className="absolute top-6 right-6 p-2 bg-slate-50 rounded-full"><X className="w-4 h-4 text-slate-400" /></button>
+                <div className="space-y-6 pt-4">
+                   <div className="space-y-1"><p className="text-[10px] font-black text-sky-500 uppercase">Mijoz</p><p className="text-xl font-black text-slate-900">{selectedBooking?.client_name}</p></div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div><p className="text-[10px] font-black text-slate-300 uppercase">Telefon</p><p className="font-bold text-slate-700">{selectedBooking?.client_phone}</p></div>
+                      <div><p className="text-[10px] font-black text-slate-300 uppercase">Sana</p><p className="font-bold text-slate-700">{selectedBooking?.booking_date}</p></div>
+                   </div>
+                   <div className="p-4 bg-sky-50 rounded-2xl border border-sky-100"><p className="text-[10px] font-black text-sky-400 uppercase mb-1">Xizmat</p><p className="font-bold text-sky-600">{selectedBooking?.service_name}</p></div>
+                   {selectedBooking?.client_note && <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><p className="text-[10px] font-black text-slate-300 uppercase mb-1">Izoh</p><p className="text-sm font-medium text-slate-500 italic">"{selectedBooking?.client_note}"</p></div>}
+                </div>
+                <button onClick={() => setSelectedBooking(null)} className="w-full mt-8 py-5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest">YOPISH</button>
+             </motion.div>
+          </motion.div>
+        )}
+
         {showAddForm && (
-          <div className="fixed inset-0 z-[80] flex items-start justify-center p-4 pt-10">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddForm(false)} className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" />
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-sm rounded-[2rem] p-6 shadow-2xl relative z-[90] border border-slate-100"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-black text-base text-slate-900">Yangi Mahsulot</h3>
-                <div className="flex gap-1 bg-slate-50 p-1 rounded-lg">
-                  <button onClick={() => setUseUrl(false)} className={`px-2 py-1 rounded-md text-[8px] font-black uppercase ${!useUrl ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-400'}`}>Fayl</button>
-                  <button onClick={() => setUseUrl(true)} className={`px-2 py-1 rounded-md text-[8px] font-black uppercase ${useUrl ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-400'}`}>URL</button>
+          <motion.div key="add" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6">
+             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white w-full max-w-md rounded-[3rem] p-8 shadow-2xl relative overflow-hidden">
+                <div className="flex justify-between items-center mb-6">
+                   <h3 className="font-black text-slate-900 uppercase text-sm tracking-widest">Yangi <span className="text-sky-500">Mahsulot</span></h3>
+                   <button onClick={() => setShowAddForm(false)} className="p-2 bg-slate-50 rounded-full"><X className="w-4 h-4 text-slate-400" /></button>
                 </div>
-              </div>
-
-              <form onSubmit={handleAddProduct} className="space-y-3">
-                <div className="h-28 w-full rounded-2xl bg-slate-50 border-2 border-dashed border-sky-100 overflow-hidden flex items-center justify-center relative transition-colors hover:bg-sky-50">
-                  {previewUrl ? (
-                    <img src={previewUrl} className="h-full w-full object-contain p-2" />
-                  ) : (
-                    <label className="cursor-pointer flex flex-col items-center">
-                      <Upload className="w-6 h-6 text-sky-300" />
-                      <span className="text-[8px] font-black text-sky-300 mt-1 uppercase tracking-widest">Rasm</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-                    </label>
-                  )}
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto px-1 no-scrollbar">
+                   <input placeholder="Nom" className="w-full bg-slate-50 p-5 rounded-2xl font-bold text-sm outline-none border border-slate-100" value={newProduct.name} onChange={e => setNewProduct(prev => ({...prev, name: e.target.value}))} />
+                   <input placeholder="Brend" className="w-full bg-slate-50 p-5 rounded-2xl font-bold text-sm outline-none border border-slate-100" value={newProduct.brand} onChange={e => setNewProduct(prev => ({...prev, brand: e.target.value}))} />
+                   <input type="number" placeholder="Narx" className="w-full bg-slate-50 p-5 rounded-2xl font-bold text-sm outline-none border border-slate-100" value={newProduct.price} onChange={e => setNewProduct(prev => ({...prev, price: e.target.value}))} />
+                   <textarea placeholder="Izoh" className="w-full bg-slate-50 p-5 rounded-2xl font-bold text-sm outline-none border border-slate-100 h-24 resize-none" value={newProduct.description} onChange={e => setNewProduct(prev => ({...prev, description: e.target.value}))} />
+                   <label className="flex flex-col items-center justify-center w-full h-32 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 cursor-pointer hover:bg-sky-50 transition-all">
+                      {newProduct.image_url ? <img src={newProduct.image_url} className="h-full w-full object-cover rounded-2xl" /> : uploading ? <Loader2 className="animate-spin text-sky-500" /> : <><Plus className="text-slate-300" /><span className="text-[10px] text-slate-400 uppercase font-black mt-2">Rasm yuklash</span></>}
+                      <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
+                   </label>
                 </div>
+                <button onClick={handleAddProduct} disabled={uploading} className="w-full mt-6 py-6 bg-sky-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-sky-100 flex items-center justify-center gap-2">
+                   {uploading ? <Loader2 className="animate-spin w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                   {uploading ? 'Saqlanmoqda...' : 'SAQLASH'}
+                </button>
+             </motion.div>
+          </motion.div>
+        )}
 
-                <div className="space-y-3">
-                  <input type="text" placeholder="Nomi" required className="w-full bg-slate-50 p-3.5 rounded-xl border border-slate-100 font-bold text-[10px] outline-none" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <input type="text" placeholder="Brend" required className="w-full bg-slate-50 p-3.5 rounded-xl border border-slate-100 font-bold text-[10px] outline-none" value={newProduct.brand} onChange={e => setNewProduct({...newProduct, brand: e.target.value})} />
-                    <input type="text" placeholder="Narxi" required className="w-full bg-slate-50 p-3.5 rounded-xl border border-slate-100 font-black text-[10px] text-sky-500 outline-none" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
-                  </div>
-
-                  <div className="flex items-center gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Miqdori:</span>
-                    <input type="number" required className="w-full bg-transparent font-black text-xs text-slate-700 outline-none" value={newProduct.stock_quantity} onChange={e => setNewProduct({...newProduct, stock_quantity: parseInt(e.target.value) || 0})} />
-                  </div>
-
-                  <textarea placeholder="Mutaxassis tavsiyasi..." className="w-full bg-slate-50 p-3.5 rounded-xl border border-slate-100 font-medium text-[9px] italic h-16 outline-none" value={newProduct.expert_tip} onChange={e => setNewProduct({...newProduct, expert_tip: e.target.value})} />
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button type="button" onClick={() => setShowAddForm(false)} className="flex-1 py-3 text-[8px] font-black text-slate-300 uppercase tracking-widest">Bekor</button>
-                  <button disabled={loading || uploading} className="flex-[2] bg-sky-500 text-white py-3 rounded-xl font-black text-[10px] shadow-lg shadow-sky-50 uppercase tracking-widest">
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'SAQLASH'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
+        {showSuccess && (
+          <motion.div key="success" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[300] bg-slate-900/80 backdrop-blur-xl flex items-center justify-center p-8">
+             <motion.div initial={{ scale: 0.8, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8 }} className="bg-white w-full max-w-sm rounded-[4rem] p-10 flex flex-col items-center text-center shadow-2xl relative">
+                <div className="w-20 h-20 bg-sky-500 rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-sky-200"><CheckCircle2 className="w-10 h-10 text-white" /></div>
+                <h3 className="text-xl font-black text-slate-900 mb-2 uppercase italic tracking-tighter">Muvaffaqiyat!</h3>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-8">Katalog yangilandi</p>
+                {lastAddedProduct && (
+                   <div className="w-full bg-slate-50 p-5 rounded-3xl border border-slate-100 flex items-center gap-4 mb-8 text-left">
+                      <img src={lastAddedProduct?.image_url} className="w-12 h-12 rounded-xl object-cover bg-white" />
+                      <div className="overflow-hidden"><p className="text-[8px] font-black text-sky-500 uppercase truncate">{lastAddedProduct?.brand}</p><p className="font-bold text-slate-800 text-xs truncate">{lastAddedProduct?.name}</p></div>
+                   </div>
+                )}
+                <button onClick={() => setShowSuccess(false)} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">TUSHUNARLI</button>
+             </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

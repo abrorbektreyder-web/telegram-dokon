@@ -24,7 +24,7 @@ A premium digital storefront and booking platform for a luxury clinic, optimized
 ### Phase 3: Booking System (Yozilish) 📅
 - [x] **Multi-step Booking UI:** Flow from service to confirmation.
 - [x] **Calendar Component:** Basic date/time selection.
-- [ ] **Real-time Availability:** Syncing with actual clinic schedule.
+- [x] **Real-time Availability:** Syncing with actual clinic schedule.
 - [x] **Service Catalog:** Dynamic list of services from the database.
 - [x] **Booking Records:** Storing appointments in Supabase.
 - [x] **Admin Notification:** Instant alert when a new booking is made.

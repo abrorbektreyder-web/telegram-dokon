@@ -275,6 +275,11 @@ export default function App() {
                        <div>
                          <p className="text-[8px] font-black text-sky-400 uppercase tracking-widest mb-1.5">{p.brand}</p>
                          <h4 className="font-bold text-[13px] leading-tight text-slate-700 line-clamp-1">{p.name}</h4>
+                         {p.description && (
+                           <p className="text-[9px] font-medium text-slate-400 mt-2 leading-relaxed line-clamp-2 italic">
+                             {p.description}
+                           </p>
+                         )}
                        </div>
                        <div className="flex justify-between items-center mt-5">
                           <span className="text-sm font-black text-slate-900">{formatValue(p.price)} <span className="text-[9px] text-slate-300 font-bold ml-0.5">{getCurrency()}</span></span>
