@@ -4,7 +4,7 @@ interface CartItem {
   id: number;
   name: string;
   price: string;
-  image: string;
+  image_url: string;
   quantity: number;
 }
 
@@ -12,8 +12,9 @@ interface CartStore {
   items: CartItem[];
   addItem: (product: any) => void;
   removeItem: (id: number) => void;
+  updateQuantity: (id: number, delta: number) => void;
   clearCart: () => void;
-  totalPrice: () => number;
+  total: () => number;
 }
 
 export const useCartStore = create<CartStore>((set, get) => ({
@@ -37,11 +38,25 @@ export const useCartStore = create<CartStore>((set, get) => ({
   removeItem: (id) => {
     set({ items: get().items.filter(item => item.id !== id) });
   },
+  updateQuantity: (id, delta) => {
+    const currentItems = get().items;
+    set({
+      items: currentItems.map(item => {
+        if (item.id === id) {
+          const newQty = item.quantity + delta;
+          return newQty > 0 ? { ...item, quantity: newQty } : item;
+        }
+        return item;
+      })
+    });
+  },
   clearCart: () => set({ items: [] }),
-  totalPrice: () => {
-    return get().items.reduce((total, item) => {
-      const price = parseInt(item.price.replace(/\s/g, ''));
-      return total + (price * item.quantity);
+  total: () => {
+    return get().items.reduce((acc, item) => {
+      // Narxdan faqat raqamlarni ajratib olish (Currency agnostic)
+      const priceStr = String(item.price || '0').replace(/[^0-9]/g, '');
+      const price = parseInt(priceStr, 10) || 0;
+      return acc + (price * item.quantity);
     }, 0);
   }
 }));
