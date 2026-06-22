@@ -51,7 +51,7 @@ function AdminRoute() {
   }
 
   return <AdminPanel 
-    onClose={() => WebApp.close()} 
+    onClose={() => window.location.href = '/'} 
     products={products} 
     onRefresh={fetchProducts} 
   />
