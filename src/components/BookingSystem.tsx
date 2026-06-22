@@ -4,7 +4,7 @@ import { Calendar as CalendarIcon, ChevronRight, CheckCircle2, Sparkles, Loader2
 import { supabase } from '../lib/supabase'
 import WebApp from '@twa-dev/sdk'
 import { useUIStore } from '../hooks/useUIStore'
-
+import { sendTelegramNotification } from '../lib/telegram'
 export default function BookingSystem() {
   const [step, setStep] = useState(1)
   const [services, setServices] = useState<any[]>([])
@@ -114,6 +114,9 @@ export default function BookingSystem() {
       }])
 
       if (error) throw error
+      
+      await sendTelegramNotification(`🔔 <b>YANGI BRON!</b>\n\n👤 <b>Mijoz:</b> ${booking.name}\n📞 <b>Tel:</b> ${booking.phone}\n🗓 <b>Vaqti:</b> ${booking.date} soat ${booking.time}\n💅 <b>Xizmat:</b> ${booking.service.name}\n💬 <b>Izoh:</b> ${booking.note || 'Yo\'q'}\n\n<i>Mijoz Telegrami:</i> @${tgUser?.username || 'Noma\'lum'}`);
+
       setStep(4)
     } catch (e: any) {
       alert(t('booking_error'))

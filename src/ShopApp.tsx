@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import WebApp from '@twa-dev/sdk'
 import { supabase } from './lib/supabase'
+import { sendTelegramNotification } from './lib/telegram'
 import { useCartStore } from './store'
 import { useUIStore } from './hooks/useUIStore'
 import { generateClickUrl } from './lib/click'
@@ -192,6 +193,8 @@ export default function ShopApp() {
       const { data, error } = await supabase.from('orders').insert([orderData]).select().single()
       
       if (error) throw error
+
+      await sendTelegramNotification(`🛍 <b>YANGI XARID!</b>\n\n👤 <b>Mijoz:</b> ${orderData.user_name}\n📦 <b>Mahsulotlar:</b> ${orderData.items}\n💰 <b>Jami summa:</b> ${orderData.total_price}\n💳 <b>To'lov usuli:</b> ${orderData.payment_type === 'click' ? 'Click' : 'Naqd pul'}\n\n<i>Mijoz Telegrami:</i> @${user?.username || 'Noma\'lum'}`);
 
       if (paymentMethod === 'click' && data) {
         const clickUrl = generateClickUrl(total(), data.id.toString())
