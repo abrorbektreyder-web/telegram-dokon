@@ -1,5 +1,5 @@
 const BOT_TOKEN = '8532025601:AAEB8BY-J-6qy3LK4au7wQHAwuO-OsKkXss';
-const ADMIN_CHAT_IDS = ['6377333240', '482537660'];
+export const ADMIN_CHAT_IDS = ['6377333240', '482537660'];
 
 export const sendTelegramNotification = async (message: string) => {
   try {
