@@ -26,6 +26,11 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
+
+  input, textarea, select {
+    user-select: auto;
+    -webkit-user-select: auto;
+  }
 }
 
 @layer components {
