@@ -1,5 +1,5 @@
-const BOT_TOKEN = '7629555771:AAGy7M64V8w9w9w9w9w9w9w9w9w9w9w'; // Bu yerga bot tokenini qo'yishingiz kerak
-const ADMIN_CHAT_ID = 'YOUR_CHAT_ID'; // Bu yerga admin chat ID sini qo'yishingiz kerak
+const BOT_TOKEN = '8532025601:AAEB8BY-J-6qy3LK4au7wQHAwuO-OsKkXss';
+const ADMIN_CHAT_ID = '6377333240';
 
 export const sendTelegramNotification = async (message: string) => {
   try {
