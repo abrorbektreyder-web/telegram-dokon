@@ -30,16 +30,16 @@ function AdminRoute() {
           </div>
           <h3 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-widest">Admin Panel</h3>
           <input 
-            type="password" 
-            placeholder="PIN kodni kiriting" 
+            type="tel" 
+            placeholder="PIN: 2026" 
             value={pin}
             onChange={e => setPin(e.target.value)}
             className="w-full bg-slate-50 p-5 rounded-2xl font-bold text-center tracking-widest text-lg outline-none mb-4"
           />
           <button 
             onClick={() => {
-              if (pin === '2026') setIsAuthenticated(true)
-              else alert('PIN kod xato!')
+              if (pin.trim() === '2026') setIsAuthenticated(true)
+              else alert('PIN kod xato! (2026 ni kiriting)')
             }}
             className="w-full py-5 bg-sky-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-sky-100 active:scale-95 transition-transform"
           >
