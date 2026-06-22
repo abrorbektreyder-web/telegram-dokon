@@ -186,6 +186,17 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
     } catch (e) { console.error(e) }
   }
 
+  const markBookingCompleted = async (id: number) => {
+    if (!confirm('Ushbu bronni bajarilgan deb belgilaysizmi?')) return
+    try {
+      const { error } = await supabase.from('bookings').update({ status: 'completed' }).eq('id', id)
+      if (!error) {
+        fetchBookings()
+        setSelectedBooking(null)
+      }
+    } catch (e) { console.error(e) }
+  }
+
   const deleteProduct = async (id: number) => {
     if (!confirm('O\'chirilsinmi?')) return
     try {
@@ -304,10 +315,13 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
                   <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Bronlar yo'q</p>
                </div>
              ) : bookingList.map(b => (
-               <div key={b.id} className="p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm group">
+               <div key={b.id} className={`p-6 bg-white rounded-[2.5rem] border ${b.status === 'completed' ? 'border-emerald-100 opacity-60' : 'border-slate-100'} shadow-sm group`}>
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1 overflow-hidden">
-                      <span className="text-[9px] font-black text-sky-500 uppercase tracking-widest bg-sky-50 px-3 py-1 rounded-full mb-2 inline-block truncate max-w-full">{b.service_name}</span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[9px] font-black text-sky-500 uppercase tracking-widest bg-sky-50 px-3 py-1 rounded-full inline-block truncate max-w-full">{b.service_name}</span>
+                        {b.status === 'completed' && <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-full"><CheckCircle2 className="w-3 h-3 inline mr-1" />Bajarildi</span>}
+                      </div>
                       <h4 className="font-black text-slate-900 text-lg leading-tight truncate">{b.client_name}</h4>
                     </div>
                     <div className="flex gap-2 shrink-0">
@@ -357,7 +371,14 @@ export default function AdminPanel({ onClose, products = [], onRefresh }: AdminP
                    <div className="p-4 bg-sky-50 rounded-2xl border border-sky-100"><p className="text-[10px] font-black text-sky-400 uppercase mb-1">Xizmat</p><p className="font-bold text-sky-600">{selectedBooking?.service_name}</p></div>
                    {selectedBooking?.client_note && <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><p className="text-[10px] font-black text-slate-300 uppercase mb-1">Izoh</p><p className="text-sm font-medium text-slate-500 italic">"{selectedBooking?.client_note}"</p></div>}
                 </div>
-                <button onClick={() => setSelectedBooking(null)} className="w-full mt-8 py-5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest">YOPISH</button>
+                <div className="flex gap-3 mt-8">
+                   {selectedBooking?.status !== 'completed' && (
+                     <button onClick={() => markBookingCompleted(selectedBooking.id)} className="flex-1 py-5 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                       <CheckCircle2 className="w-4 h-4" /> Bajarildi
+                     </button>
+                   )}
+                   <button onClick={() => setSelectedBooking(null)} className="flex-1 py-5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest">YOPISH</button>
+                </div>
              </motion.div>
           </motion.div>
         )}
