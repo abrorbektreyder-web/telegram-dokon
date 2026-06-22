@@ -39,6 +39,10 @@ function AdminRoute() {
           </div>
           <h3 className="text-lg font-black text-slate-900 mb-2 uppercase tracking-widest">Kirish taqiqlangan</h3>
           <p className="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-wider leading-relaxed">Sizda ushbu sahifaga kirish huquqi yo'q. Yoki dasturni to'g'ridan-to'g'ri Telegramdan oching.</p>
+          <div className="bg-slate-50 p-3 rounded-xl mb-6 w-full">
+            <p className="text-[9px] font-black text-slate-400 uppercase">Sizning ID raqamingiz:</p>
+            <p className="text-xs font-bold text-slate-900">{WebApp?.initDataUnsafe?.user?.id || 'Topilmadi (Telegramdan kirmagansiz)'}</p>
+          </div>
           <button 
             onClick={() => WebApp.close()}
             className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-transform"
