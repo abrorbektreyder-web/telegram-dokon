@@ -10,6 +10,7 @@ import { ADMIN_CHAT_IDS } from './lib/telegram'
 function AdminRoute() {
   const [products, setProducts] = useState<any[]>([])
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [pin, setPin] = useState('')
 
   useEffect(() => {
     fetchProducts()
@@ -34,20 +35,32 @@ function AdminRoute() {
     return (
       <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl flex flex-col items-center">
-          <div className="w-20 h-20 bg-rose-50 rounded-[2rem] flex items-center justify-center mb-6">
-             <h2 className="text-2xl font-black text-rose-500">🚫</h2>
+          <div className="w-20 h-20 bg-sky-50 rounded-[2rem] flex items-center justify-center mb-6">
+             <h2 className="text-2xl font-black text-sky-500">PRO</h2>
           </div>
-          <h3 className="text-lg font-black text-slate-900 mb-2 uppercase tracking-widest">Kirish taqiqlangan</h3>
-          <p className="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-wider leading-relaxed">Sizda ushbu sahifaga kirish huquqi yo'q. Yoki dasturni to'g'ridan-to'g'ri Telegramdan oching.</p>
-          <div className="bg-slate-50 p-3 rounded-xl mb-6 w-full">
-            <p className="text-[9px] font-black text-slate-400 uppercase">Sizning ID raqamingiz:</p>
-            <p className="text-xs font-bold text-slate-900">{WebApp?.initDataUnsafe?.user?.id || 'Topilmadi (Telegramdan kirmagansiz)'}</p>
-          </div>
+          <h3 className="text-lg font-black text-slate-900 mb-2 uppercase tracking-widest">Admin Panel</h3>
+          <p className="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-wider leading-relaxed">Telegram orqali avtomatik kirish imkoni bo'lmadi. Davom etish uchun PIN kodni kiriting.</p>
+          <input 
+            type="tel" 
+            placeholder="PIN: 2026" 
+            value={pin}
+            onChange={e => setPin(e.target.value)}
+            className="w-full bg-slate-50 p-5 rounded-2xl font-bold text-center tracking-widest text-lg outline-none mb-4"
+          />
           <button 
-            onClick={() => WebApp.close()}
-            className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-transform"
+            onClick={() => {
+              if (pin.trim() === '2026') setIsAuthenticated(true)
+              else alert('PIN kod xato! (2026 ni kiriting)')
+            }}
+            className="w-full py-5 bg-sky-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-sky-100 active:scale-95 transition-transform"
           >
-            Yopish
+            Kirish
+          </button>
+          <button 
+            onClick={() => window.location.href = '/'}
+            className="mt-6 text-[10px] font-black text-slate-400 uppercase tracking-widest"
+          >
+            Do'konga qaytish
           </button>
         </div>
       </div>
